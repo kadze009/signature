@@ -14,3 +14,24 @@ struct Singletone
 	static T const& GetInstance() { return RefInstance(); }
 };
 
+
+
+
+template <typename T>
+struct SingletoneThreadLocal
+{
+	SingletoneThreadLocal()                                        = default;
+	SingletoneThreadLocal(SingletoneThreadLocal&&)                 = delete;
+	SingletoneThreadLocal(SingletoneThreadLocal const&)            = delete;
+	SingletoneThreadLocal operator= (SingletoneThreadLocal&&)      = delete;
+	SingletoneThreadLocal operator= (SingletoneThreadLocal const&) = delete;
+
+	static T& RefInstance()
+	{
+		thread_local static T instance;
+		return instance;
+	}
+
+	static T const& GetInstance() { return RefInstance(); }
+};
+

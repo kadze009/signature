@@ -13,7 +13,6 @@ add_definitions(-Wall -Werror -O0 -pthread)
 
 
 SET(SRC
-	${PROJECT_SOURCE_DIR}/LoggerManager.cpp
 	${PROJECT_SOURCE_DIR}/WorkerManager.cpp
 	${PROJECT_SOURCE_DIR}/Worker.cpp
 	${PROJECT_SOURCE_DIR}/algos/HasherCrc32.cpp
@@ -21,6 +20,7 @@ SET(SRC
 	${PROJECT_SOURCE_DIR}/common/Config.cpp
 	${PROJECT_SOURCE_DIR}/common/FileReader.cpp
 	${PROJECT_SOURCE_DIR}/common/Logger.cpp
+	${PROJECT_SOURCE_DIR}/common/LoggerManager.cpp
 	${PROJECT_SOURCE_DIR}/main.cpp
 )
 add_executable(signature ${SRC})
