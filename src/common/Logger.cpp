@@ -2,9 +2,13 @@
 
 #include <cstdio>
 #include <cstdarg>
+#include <cstring>
 
 #include "Config.hpp"
 #include "LoggerManager.hpp"
+#include "StringFormer.hpp"
+
+#define FILE_PATH_SPLITTER '/'
 
 
 
@@ -50,19 +54,17 @@ Logger::LogMessage(
 	LoggerMessage& msg = m_pool.allocate();
 
 	auto& buffer = msg.RefContent();
-	std::size_t prefix_len = 0;
+	StringFormer sf{buffer.data(), buffer.size()};
 
+	// TODO: generate current date and time with ms
+	sf.append("%s  2019-12-24 15:15:15.123456",  toString(lvl));
 	if (filename)
 	{
-		// TODO: generate current date and time with ms
-		// TODO: print only filename
-		prefix_len = snprintf(buffer.data(), buffer.size(),
-		    "%s 2019-12-24 15:15:15.123456 [%s:%zu]: ",
-		    toString(lvl), /*time,*/ filename, line_n);
+		char const* short_name = std::strrchr(filename, FILE_PATH_SPLITTER);
+		sf.append(" [%s:%zu]", short_name, line_n);
 	}
-	char* start_print = buffer.data() + prefix_len;
-	std::size_t left_size = buffer.size() - prefix_len;
-	vsnprintf(start_print, left_size, fmt, vlist);
+	sf.append(": ");
+	sf.append(fmt, vlist);
 
 	LoggerManager::RefInstance().AddMessage(msg);
 }
