@@ -1,16 +1,14 @@
 #include "Logger.hpp"
 
 #include <chrono>
+#include <filesystem>
 
 #include <cstdio>
 #include <cstdarg>
-#include <cstring>
 
 #include "Config.hpp"
 #include "LoggerManager.hpp"
 #include "StringFormer.hpp"
-
-#define FILE_PATH_SPLITTER '/'
 
 
 
@@ -65,8 +63,7 @@ Logger::LogMessage(
 	sf.append("%s %ld.%06ld",  toString(lvl), sec.count(), usec.count());
 	if (filename)
 	{
-		char const* short_name = std::strrchr(filename, FILE_PATH_SPLITTER) + 1;
-		sf.append(" [%s:%zu]", short_name, line_n);
+		sf.append(" [%s:%zu]", std::filesystem::path(filename).filename().c_str(), line_n);
 	}
 	sf.append(": ");
 	sf.append(fmt, vlist);

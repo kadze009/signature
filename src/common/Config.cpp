@@ -285,7 +285,7 @@ Config::ParseArgs(int argc, char** argv)
 		PrintHelp();
 		return false;
 	}
-    return true;
+	return true;
 }
 
 

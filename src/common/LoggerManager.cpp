@@ -7,6 +7,12 @@ using msg_t = LoggerManager::msg_t;
 } // namespace
 
 
+LoggerManager::LoggerManager()
+	: m_out("stdout", FileWriter::file_type_e::TEXT)
+{
+	m_out.SetBufferSize(0);
+}
+
 
 void
 LoggerManager::AddMessage(msg_t& msg)
@@ -50,9 +56,8 @@ void
 LoggerManager::PrintMessage(msg_t& msg)
 {
 	//TODO: is it good idea print string_view without using size?
-	std::fputs(msg.GetSV().data(), m_out);
-	std::fputc('\n', m_out);
-	if (IsFlushing()) { std::fflush(m_out); }
+	m_out.Write(msg.GetSV());
+	m_out.Write('\n');
 }
 
 
@@ -96,6 +101,7 @@ LoggerManager::PrintBatchOfMessages(std::size_t batch_size)
 void
 LoggerManager::SetLogfile(std::string_view filename)
 {
-
+	m_out.Reset(filename, FileWriter::file_type_e::TEXT);
+	m_out.SetBufferSize(0);
 }
 
