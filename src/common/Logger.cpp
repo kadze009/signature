@@ -57,10 +57,10 @@ Logger::LogMessage(
 	StringFormer sf{buffer.data(), buffer.size()};
 
 	// TODO: generate current date and time with ms
-	sf.append("%s  2019-12-24 15:15:15.123456",  toString(lvl));
+	sf.append("%s 2019-12-24 15:15:15.123456",  toString(lvl));
 	if (filename)
 	{
-		char const* short_name = std::strrchr(filename, FILE_PATH_SPLITTER);
+		char const* short_name = std::strrchr(filename, FILE_PATH_SPLITTER) + 1;
 		sf.append(" [%s:%zu]", short_name, line_n);
 	}
 	sf.append(": ");

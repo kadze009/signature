@@ -49,8 +49,10 @@ LoggerManager::PushMessageBack(msg_t& msg)
 void
 LoggerManager::PrintMessage(msg_t& msg)
 {
-	*m_out << msg.GetSV() << '\n';
-	if (IsFlushing()) { m_out->flush(); }
+	//TODO: is it good idea print string_view without using size?
+	std::fputs(msg.GetSV().data(), m_out);
+	std::fputc('\n', m_out);
+	if (IsFlushing()) { std::fflush(m_out); }
 }
 
 

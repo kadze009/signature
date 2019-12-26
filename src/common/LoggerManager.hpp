@@ -2,10 +2,10 @@
 
 #include <mutex>
 #include <atomic>
-#include <iostream>
 #include <string_view>
 
 #include <cstdint>
+#include <cstdio>
 
 #include "Singletone.hpp"
 #include "LoggerMessage.hpp"
@@ -43,6 +43,6 @@ private:
 	LoggerMessage const*              m_head_msg  = nullptr;
 	std::atomic<LoggerMessage const*> m_last_msg  = nullptr;
 
-	std::ostream* m_out = &std::cout;
+	std::FILE* m_out = stdout;
 };
 
