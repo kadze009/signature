@@ -9,6 +9,14 @@
 
 
 
+Config::Config()
+	: m_startDateTime(start_clock_t::now())
+	, m_startMoment(clock_t::now())
+{
+
+}
+
+
 void
 Config::PrintUsage() const
 {

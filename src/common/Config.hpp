@@ -2,6 +2,7 @@
 
 #include <limits>
 #include <string>
+#include <chrono>
 #include <string_view>
 
 #include <cstdint>
@@ -15,11 +16,15 @@
 class Config : public Singletone<Config>
 {
 public:
-	using log_lvl_e = Logger::log_level_e;
+	using start_clock_t = std::chrono::system_clock;
+	using clock_t       = std::chrono::steady_clock;
+	using log_lvl_e     = Logger::log_level_e;
 
 	static constexpr std::size_t DEFAULT_BLOCK_SIZE    = 1024; // KBytes
 	static constexpr std::size_t DEFAULT_THREAD_NUM    = std::numeric_limits<std::size_t>::max();
 	static constexpr std::string_view DEFAULT_LOGFILE  = "stdout";
+
+	Config();
 
 	log_lvl_e GetActualLogLevel() const    { return m_actLogLvl; }
 	void PrintUsage() const;
@@ -29,11 +34,16 @@ public:
 	bool ParseArgs(int, char**);
 	char const* toString() const;
 
+	auto GetDurationSinceStart() const     { return clock_t::now() - m_startMoment; }
+	auto const GetStartDateTime() const    { return m_startDateTime; }
+
 private:
 	void ParseVerbose(std::string_view, StringFormer&);
 	void ParseBlockSize(std::string_view, StringFormer&);
 	void ParseOption(std::string_view, StringFormer&);
 
+	decltype(start_clock_t::now()) const m_startDateTime;
+	decltype(clock_t::now()) const       m_startMoment;
 
 	//log_lvl_e   m_actLogLvl    = log_lvl_e::WARNING;  //TODO: uncomment
 	log_lvl_e   m_actLogLvl    = log_lvl_e::DEBUG;

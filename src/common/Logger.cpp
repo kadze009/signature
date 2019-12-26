@@ -1,5 +1,7 @@
 #include "Logger.hpp"
 
+#include <chrono>
+
 #include <cstdio>
 #include <cstdarg>
 #include <cstring>
@@ -51,13 +53,16 @@ Logger::LogMessage(
 	char const*    fmt,
 	va_list        vlist)
 {
+	auto const duration = Config::RefInstance().GetDurationSinceStart();
 	LoggerMessage& msg = m_pool.allocate();
 
 	auto& buffer = msg.RefContent();
 	StringFormer sf{buffer.data(), buffer.size()};
 
-	// TODO: generate current date and time with ms
-	sf.append("%s 2019-12-24 15:15:15.123456",  toString(lvl));
+	auto const sec  =   std::chrono::duration_cast<std::chrono::seconds>(duration);
+	auto const usec =   std::chrono::duration_cast<std::chrono::microseconds>(duration)
+	                  - std::chrono::duration_cast<std::chrono::microseconds>(sec);
+	sf.append("%s %ld.%06ld",  toString(lvl), sec.count(), usec.count());
 	if (filename)
 	{
 		char const* short_name = std::strrchr(filename, FILE_PATH_SPLITTER) + 1;
