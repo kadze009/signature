@@ -57,6 +57,7 @@ R"(KEYS
             number of created threads
         * log_file=<file path> (default: stdout)
             the log file path
+
 )"
 "EXAMPLES\n"
 "    " APP_NAME " input.dat output.dat\n"

@@ -36,6 +36,7 @@ KEYS
             number of created threads
         * log_file=<file path> (default: stdout)
             the log file path
+
 EXAMPLES
     signature input.dat output.dat
     signature -b 32K input.dat output.dat -o threads=5
