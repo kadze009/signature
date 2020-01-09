@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.10)
 project(signature
 VERSION 0.1.000001
 DESCRIPTION
-"The program which splits the input file on blocks with the selected size \
-and computes the signature of the each block. The signatures is saved in \
+"The program which splits the input file on blocks with the selected size\\n\\\n\
+and computes the signature of the each block. The signatures is saved in\\n\\\n\
 output file.")
 
 
@@ -34,7 +34,6 @@ configure_file(BuildVersion.hpp.in BuildVersion.hpp)
 target_include_directories (
 	signature PUBLIC
 	"${PROJECT_BINARY_DIR}"
-	"${PROJECT_SOURCE_DIR}/common"
-	"${PROJECT_SOURCE_DIR}/algos"
+	"${PROJECT_SOURCE_DIR}"
 )
 

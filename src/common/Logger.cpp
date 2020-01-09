@@ -8,7 +8,6 @@
 
 #include "Config.hpp"
 #include "LoggerManager.hpp"
-#include "StringFormer.hpp"
 
 
 

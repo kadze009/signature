@@ -6,6 +6,8 @@
 #include <cstdio>
 
 #include "BuildVersion.hpp"
+#include "algos/HasherMd5.hpp"
+#include "algos/HasherCrc32.hpp"
 
 
 
@@ -13,7 +15,7 @@ Config::Config()
 	: m_startDateTime(start_clock_t::now())
 	, m_startMoment(clock_t::now())
 {
-
+	m_init_algo.reset(new algo::InitMd5HashStrategy);
 }
 
 
@@ -22,7 +24,7 @@ Config::PrintUsage() const
 {
     fprintf(stderr,
 "Usage:\n"
-"    " APP_NAME "[KEYS]... INPUT_FILE OUTPUT_FILE\n");
+"    " APP_NAME " [KEYS]... INPUT_FILE OUTPUT_FILE\n");
 }
 
 
@@ -51,7 +53,7 @@ R"(KEYS
 
     -o, --option OPTION
         set special option:
-        * sign_algo=[crc32,md5] (default: crc32)
+        * sign_algo=[crc32,md5] (default: md5)
             signature algorithm
         * threads=NUM (default: as many threads as possible)
             number of created threads
@@ -253,7 +255,7 @@ Config::ParseArgs(int argc, char** argv)
 			}
 		}
 	}
-	catch(std::exception const& ex)
+	catch (std::exception const& ex)
 	{
 		LOG_E("%s: caught exception on argument #%d: %s",
 		      __FUNCTION__, i_arg, ex.what());

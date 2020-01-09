@@ -4,7 +4,7 @@
 
 #include <cstring>
 
-#include "StringFormer.hpp"
+#include "Logger.hpp"
 
 
 
@@ -38,15 +38,11 @@ FileBase::Close()
 void
 FileBase::Reset(std::string_view name, char const* mode /* = nullptr */)
 {
-	constexpr std::size_t BUF_SIZE = 256;
-	char buffer[BUF_SIZE];
-	StringFormer err_fmt {buffer, BUF_SIZE};
-
 	Close();
 
 	if (name.empty())
 	{
-		throw std::runtime_error("File's name is empty.");
+		THROW_ERROR("%s", "File's name is empty.");
 	}
 	else if (name == "stdout")
 	{
@@ -65,17 +61,15 @@ FileBase::Reset(std::string_view name, char const* mode /* = nullptr */)
 	}
 	else if (not mode)
 	{
-		throw std::runtime_error(
-			err_fmt("INTERNAL ERROR: select non standard file name [%s] but "
-			        "the corresponding mode is empty.", name.data()).c_str());
+		THROW_ERROR("INTERNAL ERROR: select non standard file name [%s] but "
+		            "the corresponding mode is empty.", name.data());
 	}
 
 	m_file = std::fopen(name.data(), mode);
 	if (not m_file)
 	{
-		throw std::runtime_error(
-			err_fmt("Can not open file [%s]: %s",
-			         name.data(), std::strerror(errno)).c_str());
+		THROW_ERROR("Can not open file [%s]: %s",
+		            name.data(), std::strerror(errno));
 	}
 }
 

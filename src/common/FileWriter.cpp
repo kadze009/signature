@@ -1,10 +1,8 @@
 #include "FileWriter.hpp"
 
-#include <stdexcept>
-
 #include <cstring>
 
-#include "StringFormer.hpp"
+#include "Logger.hpp"
 
 
 
@@ -44,12 +42,8 @@ FileWriter::Write(uint8_t const* data, std::size_t size)
 	std::size_t written = std::fwrite(data, sizeof(*data), size, GetHandler());
 	if (written != size)
 	{
-		constexpr std::size_t BUF_SIZE = 256;
-		char buffer[BUF_SIZE];
-
-		throw std::runtime_error(StringFormer(buffer, BUF_SIZE)
-		    ("Unexpexted was written less bytes: exp=%zu, act=%zu. Error: %s",
-		     size, written, std::strerror(errno)).c_str());
+		THROW_ERROR("Unexpexted was written less bytes: exp=%zu, act=%zu. Error: %s",
+		            size, written, std::strerror(errno));
 	}
 	FlushIfNeeded();
 }

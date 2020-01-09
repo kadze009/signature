@@ -1,10 +1,13 @@
 #pragma once
 
+#include <stdexcept>
+
 #include <cstdint>
 
 #include "Singletone.hpp"
 #include "LoggerMessage.hpp"
 #include "Pool.hpp"
+#include "StringFormer.hpp"
 
 
 
@@ -16,6 +19,16 @@
 	Logger::RefInstance().LogInf(__FILE__, __LINE__, FMT, __VA_ARGS__)
 #define LOG_D(FMT, ...) \
 	Logger::RefInstance().LogDbg(__FILE__, __LINE__, FMT, __VA_ARGS__)
+
+#define THROW_ERROR(FMT, ...) \
+	do { \
+		LOG_E("{THROW_ERROR} " FMT, __VA_ARGS__); \
+		constexpr std::size_t MAX_SIZE = 256; \
+		char buffer[MAX_SIZE]; \
+		throw std::runtime_error( \
+			StringFormer(buffer, MAX_SIZE)(FMT, __VA_ARGS__) \
+			.c_str()); \
+	} while(false)
 
 
 

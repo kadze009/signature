@@ -8,10 +8,12 @@ file.
 ## Usage
 ```
 Usage:
-    signature[KEYS]... INPUT_FILE OUTPUT_FILE
+    signature [KEYS]... INPUT_FILE OUTPUT_FILE
 
 DESCRIPTION
-    The program which splits the input file on blocks with the selected size and computes the signature of the each block. The signatures is saved in output file.
+    The program which splits the input file on blocks with the selected size
+	and	computes the signature of the each block. The signatures is saved in
+	output file.
 
 KEYS
     -h, --help

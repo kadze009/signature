@@ -4,12 +4,14 @@
 #include <string>
 #include <chrono>
 #include <string_view>
+#include <memory>
 
 #include <cstdint>
 
 #include "Singletone.hpp"
 #include "Logger.hpp"
 #include "StringFormer.hpp"
+#include "algos/HasherFactory.hpp"
 
 
 
@@ -52,6 +54,8 @@ private:
 	std::string m_logfile      { DEFAULT_LOGFILE };
 	std::string m_input_file;
 	std::string m_output_file;
-	// algo_e m_algo = algo_e::CRC32;
+
+	using init_algo_t = std::unique_ptr<algo::InitHashStrategy>;
+	init_algo_t m_init_algo;
 };
 
