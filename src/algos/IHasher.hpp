@@ -8,7 +8,7 @@ namespace algo {
 
 struct IHasher
 {
-	virtual int Init(InitHashStrategy&)             = 0;
+	virtual int Init(InitHashStrategy const&)       = 0;
 	virtual int Update(uint8_t const*, std::size_t) = 0;
 	virtual int Finish(uint8_t*, std::size_t&)      = 0;
 };

@@ -5,6 +5,7 @@
 #include <thread>
 #include <charconv>
 #include <system_error>
+#include <filesystem>
 
 #include <cstdio>
 #include <cstdarg>
@@ -20,7 +21,7 @@ Config::Config()
 	: m_startDateTime(start_clock_t::now())
 	, m_startMoment(clock_t::now())
 {
-	m_init_algo.reset(new algo::InitMd5HashStrategy);
+	m_initAlgo.reset(new algo::InitMd5HashStrategy);
 }
 
 
@@ -61,10 +62,15 @@ R"(KEYS
         * sign_algo=[crc32,md5] (default: md5)
             signature algorithm
         * threads=NUM (default: as many threads as possible)
-            number of created threads
+            integer number of threads for processing
         * log_file=<file path> (default: stdout)
             the log file path
-
+        * log_batch_size=<number> (default: 100)
+            the integer number of log messages for writing in async mode during
+            multithread execution
+        * with_main_thread=[true,false] (default: false)
+            the sign that main thread will be used for calculation signature
+            NOTE: the parameter will be enabled automatically if `threads=1`
 )"
 "EXAMPLES\n"
 "    " APP_NAME " input.dat output.dat\n"
@@ -207,13 +213,29 @@ Config::ParseArgs(int argc, char** argv)
 			if (not key_arg)
 			{
 				// detect not a key. Possible it is a name of input/output file
-				if      (m_input_file.empty())  { m_input_file.assign(cur_arg); }
-				else if (m_output_file.empty()) { m_output_file.assign(cur_arg); }
+				if      (m_inputFile.empty())
+				{
+					using std::filesystem::file_size;
+					m_inputFile.assign(cur_arg);
+
+					std::error_code ec;
+					m_inputFileSize = file_size(m_inputFile, ec);
+					if (ec)
+					{
+						THROW_INVALID_ARGUMENT("can not get size of input file "
+							"[%s]: %s",
+							m_inputFile.c_str(), ec.message().c_str());
+					}
+				}
+				else if (m_outputFile.empty())
+				{
+					m_outputFile.assign(cur_arg);
+				}
 				else
 				{
 					THROW_INVALID_ARGUMENT(
 						"unknown [%s]: input[%s] and output[%s] files were set.",
-						cur_arg, m_input_file.c_str(), m_output_file.c_str());
+						cur_arg, m_inputFile.c_str(), m_outputFile.c_str());
 				}
 				continue;
 			}
@@ -280,6 +302,7 @@ Config::ParseArgs(int argc, char** argv)
 		FinalCheck_BlockSize();
 		FinalCheck_ThreadNums();
 		FinalCheck_Algo();
+		FinalCheck_LogSettings();
 	}
 	catch (std::invalid_argument const& ex)
 	{
@@ -328,7 +351,7 @@ Config::ParseBlockSize(std::string_view value)
 {
 	char const* begin = value.data();
 	char const* end   = value.data() + value.size();
-	auto res = std::from_chars(begin, end, m_block_size);
+	auto res = std::from_chars(begin, end, m_blockSizeKB);
 	if (res.ec != std::errc())
 	{
 		THROW_INVALID_ARGUMENT("can not parse block size [%s]: %s",
@@ -342,19 +365,19 @@ Config::ParseBlockSize(std::string_view value)
 			THROW_INVALID_ARGUMENT(
 				"too long suffix [%s] of block size's number [%zu]. "
 				"Available only K, M and G.",
-				res.ptr, m_block_size);
+				res.ptr, m_blockSizeKB);
 		}
 
 		switch (res.ptr[0])
 		{
 		case 'K': break;
-		case 'M': m_block_size *= 1024; break;
-		case 'G': m_block_size *= 1024*1024; break;
+		case 'M': m_blockSizeKB *= 1024; break;
+		case 'G': m_blockSizeKB *= 1024*1024; break;
 		default:
 			THROW_INVALID_ARGUMENT(
 				"unknown number modificator [%c] for found block size [%zu]. "
 				"Available only K, M and G.",
-				res.ptr[0], m_block_size);
+				res.ptr[0], m_blockSizeKB);
 		}
 	}
 }
@@ -381,11 +404,11 @@ Config::ParseOption(std::string_view value)
 	{
 		if      (opt_v == "md5")
 		{
-			m_init_algo.reset(new algo::InitMd5HashStrategy);
+			m_initAlgo.reset(new algo::InitMd5HashStrategy);
 		}
 		else if (opt_v == "crc32")
 		{
-			m_init_algo.reset(new algo::InitCrc32HashStrategy);
+			m_initAlgo.reset(new algo::InitCrc32HashStrategy);
 		}
 		else
 		{
@@ -397,7 +420,7 @@ Config::ParseOption(std::string_view value)
 	else if (opt_k == "threads")
 	{
 		auto res = std::from_chars(opt_v.data(), opt_v.data() + opt_v.size(),
-		                           m_num_threads);
+		                           m_numThreads);
 		if (res.ec != std::errc())
 		{
 			THROW_INVALID_ARGUMENT("can not parse threads number [%.*s]: %s",
@@ -413,6 +436,38 @@ Config::ParseOption(std::string_view value)
 		m_logfile.assign(opt_v);
 	}
 
+	else if (opt_k == "log_batch_size")
+	{
+		auto res = std::from_chars(opt_v.data(), opt_v.data() + opt_v.size(),
+		                           m_logMsgBatchSize);
+		if (res.ec != std::errc())
+		{
+			THROW_INVALID_ARGUMENT("can not parse log messages batch size [%.*s]: %s",
+				(int)opt_v.size(), opt_v.data(),
+				std::make_error_code(res.ec).message().c_str());
+		}
+	}
+
+	else if (opt_k == "with_main_thread")
+	{
+		if      (opt_v == "true")
+		{
+			m_withMainThread = true;
+		}
+		else if (opt_v == "false")
+		{
+			m_withMainThread = false;
+		}
+		else
+		{
+			THROW_INVALID_ARGUMENT(
+				"unknown sign [%.*s] for option [%.*s]. "
+				"Available values: true, false.",
+				(int)opt_v.size(), opt_v.data(),
+				(int)opt_k.size(), opt_k.data());
+		}
+	}
+
 	else
 	{
 		THROW_INVALID_ARGUMENT("unknown option [%.*s]",
@@ -424,25 +479,25 @@ Config::ParseOption(std::string_view value)
 void
 Config::FinalCheck_InputOutputFiles()
 {
-	if (m_input_file.empty() and m_output_file.empty())
+	if (m_inputFile.empty() and m_outputFile.empty())
 	{
 		THROW_ERROR("%s: INPUT and OUTPUT files are unknown.", __FUNCTION__);
 	}
-	if (m_input_file.empty())
+	if (m_inputFile.empty())
 	{
 		THROW_ERROR("%s: unknown INPUT file.", __FUNCTION__);
 	}
-	if (m_output_file.empty())
+	if (m_outputFile.empty())
 	{
 		THROW_ERROR("%s: unknown OUTPUT file.", __FUNCTION__);
 	}
 
-	if (m_input_file == m_output_file)
+	if (m_inputFile == m_outputFile)
 	{
 		THROW_ERROR(
 			"%s: INPUT and OUTPUT files must have different names. "
 			"Detect the same names '%s'",
-			__FUNCTION__, m_input_file.c_str());
+			__FUNCTION__, m_inputFile.c_str());
 	}
 }
 
@@ -450,7 +505,7 @@ Config::FinalCheck_InputOutputFiles()
 void
 Config::FinalCheck_BlockSize()
 {
-	if (m_block_size == 0)
+	if (m_blockSizeKB == 0)
 	{
 		THROW_ERROR("%s: the block size MUST BE more then 0", __FUNCTION__);
 	}
@@ -460,24 +515,31 @@ Config::FinalCheck_BlockSize()
 void
 Config::FinalCheck_ThreadNums()
 {
-	if (m_num_threads == 0)
+	if (m_numThreads == 0)
 	{
 		THROW_ERROR("%s: the number of threads MUST BE more then 0", __FUNCTION__);
 	}
 
 	std::size_t hw_cores = std::thread::hardware_concurrency();
 
-	if (m_num_threads == DEFAULT_THREAD_NUM)
+	if (m_numThreads == DEFAULT_THREAD_NUM)
 	{
-		m_num_threads = hw_cores;
-		if (m_num_threads > 7) { --m_num_threads; } // stay one core for OS's needes
+		m_numThreads = hw_cores;
+		if (m_numThreads > 7) { --m_numThreads; } // stay one core for OS's needes
 	}
-	else if (m_num_threads > hw_cores)
+	else if (m_numThreads > hw_cores)
 	{
 		THROW_ERROR(
 			"%s: the invalid number of expected threads [%zu]: "
 			"available maximum %zu threads.",
-			__FUNCTION__, m_num_threads, hw_cores);
+			__FUNCTION__, m_numThreads, hw_cores);
+	}
+
+	if (m_numThreads == 1)
+	{
+		LOG_W("%s: detect using of 1 thread. Auto enable using main thread "
+		      "for calculation.", __FUNCTION__);
+		m_withMainThread = true;
 	}
 }
 
@@ -485,34 +547,54 @@ Config::FinalCheck_ThreadNums()
 void
 Config::FinalCheck_Algo()
 {
-	if (not m_init_algo) { THROW_ERROR("%s: algorithm was not select.", __FUNCTION__); }
+	if (not m_initAlgo) { THROW_ERROR("%s: algorithm was not select.", __FUNCTION__); }
+}
+
+
+void
+Config::FinalCheck_LogSettings()
+{
+	if (m_logMsgBatchSize == 0)
+	{
+		THROW_ERROR(
+			"%s: the log messages batch size MUST be more then 0",
+			__FUNCTION__);
+	}
 }
 
 
 char const*
 Config::toString() const
 {
-	constexpr std::size_t MAX_SIZE = 256;
+	constexpr std::size_t MAX_SIZE = 368;
 	static std::array<char, MAX_SIZE> buffer;
 
 	buffer.fill('\0');
 	StringFormer str(buffer.data(), buffer.size());
-	str(R"(Configuration:
+	str(R"({
 	LOG FILE        = %s
 	LOG LEVEL       = %s
+	LOG BATCH SIZE  = %zu
 	ALGORITHM       = %s
 	BLOCK SIZE (KB) = %zu
 	NUMBER THREADS  = %zu
+	USE MAIN THREAD = %c
 	INPUT FILE      = %s
+	INPUT FILE SIZE = %zu
+	BYTES SHIFT     = %zu
 	OUTPUT FILE     = %s
-)",
+})",
 		m_logfile.c_str(),
 		::toString(m_actLogLvl),
-		::toString(m_init_algo->GetType()),
-		m_block_size,
-		m_num_threads,
-		m_input_file.c_str(),
-		m_output_file.c_str());
+		m_logMsgBatchSize,
+		::toString(m_initAlgo->GetType()),
+		m_blockSizeKB,
+		m_numThreads,
+		m_withMainThread ? 'Y' : 'N',
+		m_inputFile.c_str(),
+		m_inputFileSize,
+		m_bytesShift,
+		m_outputFile.c_str());
 
     return str.c_str();
 }

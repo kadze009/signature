@@ -222,7 +222,7 @@ HasherMd5::Init()
 
 
 int
-HasherMd5::Init(InitHashStrategy& init)
+HasherMd5::Init(InitHashStrategy const& init)
 {
 	Init();
 	return 0;

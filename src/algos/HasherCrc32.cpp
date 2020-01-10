@@ -5,7 +5,7 @@
 namespace algo {
 
 int
-HasherCrc32::Init(InitHashStrategy&)
+HasherCrc32::Init(InitHashStrategy const&)
 {
 	//TODO: implement
 	return 0;

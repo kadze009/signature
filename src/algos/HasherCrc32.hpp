@@ -31,7 +31,7 @@ public:
 	~HasherCrc32() = default;
 
 	// IHasher
-	int Init(InitHashStrategy&) override;
+	int Init(InitHashStrategy const&) override;
 	int Update(uint8_t const*, std::size_t) override;
 	int Finish(uint8_t*, std::size_t&) override;
 
