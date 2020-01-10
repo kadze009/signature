@@ -23,9 +23,9 @@ private:
 class HasherMd5 : public IHasher
 {
 public:
-	HasherMd5(HasherMd5&&) = delete;
-	HasherMd5(HasherMd5 const&) = delete;
-	HasherMd5& operator= (HasherMd5&&) = delete;
+	HasherMd5(HasherMd5&&)                  = delete;
+	HasherMd5(HasherMd5 const&)             = delete;
+	HasherMd5& operator= (HasherMd5&&)      = delete;
 	HasherMd5& operator= (HasherMd5 const&) = delete;
 
 	HasherMd5()  { Init(); }

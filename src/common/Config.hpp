@@ -10,7 +10,6 @@
 
 #include "Singletone.hpp"
 #include "Logger.hpp"
-#include "StringFormer.hpp"
 #include "algos/HasherFactory.hpp"
 
 
@@ -40,9 +39,15 @@ public:
 	auto const GetStartDateTime() const    { return m_startDateTime; }
 
 private:
-	void ParseVerbose(std::string_view, StringFormer&);
-	void ParseBlockSize(std::string_view, StringFormer&);
-	void ParseOption(std::string_view, StringFormer&);
+	void ParseVerbose(std::string_view);
+	void ParseBlockSize(std::string_view);
+	void ParseOption(std::string_view);
+
+	void FinalCheck_InputOutputFiles();
+	void FinalCheck_BlockSize();
+	void FinalCheck_ThreadNums();
+	void FinalCheck_Algo();
+
 
 	decltype(start_clock_t::now()) const m_startDateTime;
 	decltype(clock_t::now()) const       m_startMoment;

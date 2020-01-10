@@ -11,10 +11,10 @@
 
 
 
-// static
 char const*
-Logger::toString(log_level_e v)
+toString(Logger::log_level_e v)
 {
+	using log_level_e = Logger::log_level_e;
 	switch(v)
 	{
 	case log_level_e::DEBUG:   return "DBG";

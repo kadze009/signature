@@ -1,11 +1,24 @@
 #include "HasherFactory.hpp"
 
-#include "Logger.hpp"
+#include "common/Logger.hpp"
 
 #include "IHasher.hpp"
 #include "HasherMd5.hpp"
 #include "HasherCrc32.hpp"
 
+
+
+char const*
+toString(algo::hash_type_e v)
+{
+	switch (v)
+	{
+	case algo::hash_type_e::UNKNOWN: return "UNKNOWN";
+	case algo::hash_type_e::MD5:     return "MD5";
+	case algo::hash_type_e::CRC32:   return "CRC32";
+	}
+	return "?";
+}
 
 
 namespace algo {

@@ -27,6 +27,7 @@ public:
 	InitHashStrategy(hash_type_e type = hash_type_e::UNKNOWN)
 		: m_type(type)
 	{}
+	virtual ~InitHashStrategy() {}
 
 	hash_type_e GetType() const { return  m_type; }
 
@@ -39,8 +40,10 @@ private:
 struct HasherFactory
 {
 	using hasher_t = std::unique_ptr<IHasher>;
-	static hasher_t Create(InitHashStrategy const&);
+	static hasher_t Create(InitHashStrategy&);
 };
 
 } // namespace algo
+
+char const* toString(algo::hash_type_e);
 
