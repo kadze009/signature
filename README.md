@@ -12,8 +12,8 @@ Usage:
 
 DESCRIPTION
     The program which splits the input file on blocks with the selected size
-	and	computes the signature of the each block. The signatures is saved in
-	output file.
+and computes the signature of the each block. The signatures is saved in
+output file.
 
 KEYS
     -h, --help
@@ -32,7 +32,7 @@ KEYS
 
     -o, --option OPTION
         set special option:
-        * sign_algo=[crc32,md5] (default: crc32)
+        * sign_algo=[crc32,md5] (default: md5)
             signature algorithm
         * threads=NUM (default: as many threads as possible)
             number of created threads
