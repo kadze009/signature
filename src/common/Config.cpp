@@ -71,14 +71,12 @@ R"(KEYS
             signature algorithm
         * threads=NUM (default: as many threads as possible)
             integer number of threads for processing
+            (at least 2: one -- manager, others -- workers)
         * log_file=<file path> (default: stdout)
             the log file path
         * log_batch_size=<number> (default: 100)
             the integer number of log messages for writing in async mode during
             multithread execution
-        * with_main_thread=[true,false] (default: false)
-            the sign that main thread will be used for calculation signature
-            NOTE: the parameter will be enabled automatically if `threads=1`
 
 )"
 "EXAMPLES\n"
@@ -460,26 +458,6 @@ Config::ParseOption(std::string_view value)
 		}
 	}
 
-	else if (opt_k == "with_main_thread")
-	{
-		if      (opt_v == "true")
-		{
-			m_withMainThread = true;
-		}
-		else if (opt_v == "false")
-		{
-			m_withMainThread = false;
-		}
-		else
-		{
-			THROW_INVALID_ARGUMENT(
-				"unknown sign [%.*s] for option [%.*s]. "
-				"Available values: true, false.",
-				(int)opt_v.size(), opt_v.data(),
-				(int)opt_k.size(), opt_k.data());
-		}
-	}
-
 	else
 	{
 		THROW_INVALID_ARGUMENT("unknown option [%.*s]",
@@ -537,21 +515,23 @@ Config::FinalCheck_ThreadNums()
 	if (m_numThreads == DEFAULT_THREAD_NUM)
 	{
 		m_numThreads = hw_cores;
-		if (m_numThreads > 7) { --m_numThreads; } // stay one core for OS's needes
+		//if (m_numThreads > 7) { --m_numThreads; } // stay one core for OS's needes
 	}
-	else if (m_numThreads > hw_cores)
+	else if (m_numThreads > 2*hw_cores)
 	{
 		THROW_ERROR(
 			"%s: the invalid number of expected threads [%zu]: "
-			"available maximum %zu threads.",
+			"available maximum 2*%zu threads.",
 			__FUNCTION__, m_numThreads, hw_cores);
 	}
 
-	if (m_numThreads == 1)
+	if (m_numThreads < 2)
 	{
-		LOG_W("%s: detect using of 1 thread. Auto enable using main thread "
-		      "for calculation.", __FUNCTION__);
-		m_withMainThread = true;
+		THROW_ERROR(
+			"%s: the invalid number of expected threads [%zu]: "
+			"expected MUST BE at least 2 threads "
+			"(one -- manager, others -- workers)",
+			__FUNCTION__, m_numThreads);
 	}
 }
 
@@ -590,7 +570,6 @@ Config::toString() const
 	ALGORITHM       = %s
 	BLOCK SIZE (KB) = %zu
 	NUMBER THREADS  = %zu
-	USE MAIN THREAD = %c
 	INPUT FILE      = %s
 	INPUT FILE SIZE = %zu
 	BYTES SHIFT     = %zu
@@ -602,7 +581,6 @@ Config::toString() const
 		::toString(m_initAlgo->GetType()),
 		m_blockSizeKB,
 		m_numThreads,
-		m_withMainThread ? 'Y' : 'N',
 		m_inputFile.c_str(),
 		m_inputFileSize,
 		m_bytesShift,

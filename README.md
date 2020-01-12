@@ -36,14 +36,12 @@ KEYS
             signature algorithm
         * threads=NUM (default: as many threads as possible)
             integer number of threads for processing
+            (at least 2: one -- manager, others -- workers)
         * log_file=<file path> (default: stdout)
             the log file path
         * log_batch_size=<number> (default: 100)
             the integer number of log messages for writing in async mode during
             multithread execution
-        * with_main_thread=[true,false] (default: false)
-            the sign that main thread will be used for calculation signature
-            NOTE: the parameter will be enabled automatically if `threads=1`
 
 EXAMPLES
     signature input.dat output.dat

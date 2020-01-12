@@ -57,10 +57,7 @@ public:
 	std::string_view GetOutputFile() const  { return m_outputFile; }
 	std::uintmax_t GetBlockSizeKB() const   { return m_blockSizeKB; }
 	std::size_t GetBatchSizeOfLogMessages() const { return m_logMsgBatchSize; }
-	bool NeedUseMainThread() const          { return m_withMainThread; }
-
 	std::size_t GetThreadsNum() const       { return m_numThreads; }
-	void SetThreadsNum(std::size_t v)       { m_numThreads = v; }
 
 	std::uintmax_t GetBytesShift() const    { return m_bytesShift; }
 	void SetBytesShift(std::uintmax_t v)    { m_bytesShift = v; }
@@ -91,7 +88,6 @@ private:
 	std::string    m_inputFile;
 	std::uintmax_t m_inputFileSize   = 0;
 	init_algo_t    m_initAlgo;
-	bool           m_withMainThread  = false;
 
 	static BuildVersion_s const m_buildVersion;
 };
