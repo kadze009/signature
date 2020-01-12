@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "common/Config.hpp"
+#include "common/LoggerManager.hpp"
 #include "WorkerManager.hpp"
 
 
@@ -11,11 +12,22 @@ main(int argc, char** argv)
 	std::ios::sync_with_stdio(false);
 
 	auto& config  = Config::RefInstance();
-	auto& wrk_mgr = WorkerManager::RefInstance();
+	auto& log_mgr = LoggerManager::RefInstance();
 
 	if (not config.ParseArgs(argc, argv)) { return 1; }
-	wrk_mgr.Init();
-	wrk_mgr.Run();
+	log_mgr.SetLogfile(config.GetLogfile());
+	WorkerManager wrk_mgr(config);
+
+	std::size_t log_batch_size = config.GetBatchSizeOfLogMessages();
+	log_mgr.SetSyncMode(false);
+	wrk_mgr.Start();
+
+	do
+	{
+		log_mgr.PrintBatchOfMessages(log_batch_size);
+		wrk_mgr.DoWork();
+	}
+	while (not wrk_mgr.IsFinished());
 
 	return 0;
 }

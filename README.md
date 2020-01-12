@@ -44,6 +44,7 @@ KEYS
         * with_main_thread=[true,false] (default: false)
             the sign that main thread will be used for calculation signature
             NOTE: the parameter will be enabled automatically if `threads=1`
+
 EXAMPLES
     signature input.dat output.dat
     signature -b 32K input.dat output.dat -o threads=5

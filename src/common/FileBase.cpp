@@ -9,9 +9,8 @@
 
 
 FileBase::FileBase(std::string_view name, char const* mode /* = nullptr */)
-	: m_name(name)
 {
-	this->Reset(m_name, mode);
+	this->Reset(name, mode);
 }
 
 
@@ -39,6 +38,8 @@ void
 FileBase::Reset(std::string_view name, char const* mode /* = nullptr */)
 {
 	Close();
+
+	m_name = name;
 
 	if (name.empty())
 	{

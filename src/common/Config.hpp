@@ -30,6 +30,16 @@ public:
 
 	Config();
 
+	struct BuildVersion_s
+	{
+		std::uint32_t major;
+		std::uint32_t minor;
+		std::uint32_t patch;
+	};
+
+	static
+	BuildVersion_s const& GetBuildVersion() { return m_buildVersion; }
+
 	void PrintUsage() const;
 	void PrintHelp() const;
 	void PrintVersion() const;
@@ -82,5 +92,7 @@ private:
 	std::uintmax_t m_inputFileSize   = 0;
 	init_algo_t    m_initAlgo;
 	bool           m_withMainThread  = false;
+
+	static BuildVersion_s const m_buildVersion;
 };
 

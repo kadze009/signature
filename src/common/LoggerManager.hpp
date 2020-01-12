@@ -13,6 +13,16 @@
 
 
 
+//TODO:
+//    * (AZ) **The problem:** what is happend when the first thread calls
+//      `PrintBatchOfMessages` and the second thread calls `SetLogfile` or
+//      `NewLogfile`?
+//      **Temp solution:** I expect that these methods call only one thread.
+//      **Bad solution:** save the thread ID of the main thread and check it
+//      before execution some methods. If a thread ID is different with saved
+//      then it's the error of developer and can `throw 666;`
+//      (uncathchable exception)
+//
 class LoggerManager : public Singletone<LoggerManager>
 {
 public:
@@ -20,7 +30,9 @@ public:
 
 	LoggerManager();
 
+	void NewLogfile(std::string_view filename);
 	void SetLogfile(std::string_view filename);
+	std::string_view GetLogfile() const    { return m_out.GetName(); }
 
 	void SetSyncMode(bool need_sync)       { m_needSync = need_sync; }
 	bool IsSyncMode() const                { return m_needSync; }
@@ -34,6 +46,7 @@ public:
 private:
 	void PushMessageBack(msg_t&);
 	void PrintMessage(msg_t&);
+	void PrintMessage(std::string_view);
 	msg_t* MakeFreeAndGetNext(msg_t&);
 
 	bool m_needSync  = true;

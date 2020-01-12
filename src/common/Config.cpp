@@ -17,6 +17,14 @@
 
 
 
+Config::BuildVersion_s const Config::m_buildVersion
+{
+	  .major = BUILD_VERSION_MAJOR
+	, .minor = BUILD_VERSION_MINOR
+	, .patch = BUILD_VERSION_PATCH
+};
+
+
 Config::Config()
 	: m_startDateTime(start_clock_t::now())
 	, m_startMoment(clock_t::now())
@@ -28,7 +36,7 @@ Config::Config()
 void
 Config::PrintUsage() const
 {
-    fprintf(stderr,
+	fprintf(stderr,
 "Usage:\n"
 "    " APP_NAME " [KEYS]... INPUT_FILE OUTPUT_FILE\n");
 }
@@ -37,8 +45,8 @@ Config::PrintUsage() const
 void
 Config::PrintHelp() const
 {
-    PrintUsage();
-    fprintf(stderr,
+	PrintUsage();
+	fprintf(stderr,
 "\nDESCRIPTION\n"
 "    " APP_DESCRIPTION "\n\n"
 
@@ -71,21 +79,25 @@ R"(KEYS
         * with_main_thread=[true,false] (default: false)
             the sign that main thread will be used for calculation signature
             NOTE: the parameter will be enabled automatically if `threads=1`
+
 )"
 "EXAMPLES\n"
 "    " APP_NAME " input.dat output.dat\n"
 "    " APP_NAME " -b 32K input.dat output.dat -o threads=5\n"
 "    " APP_NAME " --block-size 32K input.dat out.dat -o sign_algo=md5 -o threads=5\n"
-    );
+	);
 }
 
 
 void
 Config::PrintVersion() const
 {
-    fprintf(stderr,
+	fprintf(stderr,
 	        APP_NAME ": version %d.%d (patch %06d)\n",
-	        BUILD_VERSION_MAJOR, BUILD_VERSION_MINOR, BUILD_VERSION_PATCH);
+	        GetBuildVersion().major,
+	        GetBuildVersion().minor,
+	        GetBuildVersion().patch
+	       );
 }
 
 
