@@ -40,7 +40,7 @@ private:
 struct HasherFactory
 {
 	using hasher_t = std::unique_ptr<IHasher>;
-	static hasher_t Create(InitHashStrategy&);
+	static hasher_t Create(InitHashStrategy const&);
 };
 
 } // namespace algo

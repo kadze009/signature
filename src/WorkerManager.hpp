@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/Config.hpp"
+#include "Worker.hpp"
 
 
 class WorkerManager
@@ -16,9 +17,14 @@ public:
 
 	void Start() noexcept;
 	void DoWork() noexcept;
-	bool IsFinished() const                        { return m_isFinished; }
+	bool IsFinished() const noexcept               { return m_isFinished; }
+
+	Config const& GetConfig() const                { return m_cfg; }
 
 private:
+	WorkerCtx* FindFailedWorkerCtx() const;
+	bool IsAllWorkerStop() const;
+
 	Config&    m_cfg;
 	bool       m_isFinished = false;
 };

@@ -274,8 +274,16 @@ HasherMd5::Update(uint8_t const* input, std::size_t inputLen)
 
 
 
+std::size_t
+HasherMd5::ResultSize() const
+{
+	return sizeof(Context::state);
+}
+
+
+
 int
-HasherMd5::Finish(uint8_t* buffer, std::size_t& size)
+HasherMd5::Finish(uint8_t* buffer)
 {
 	if (m_was_finished)
 	{
@@ -298,8 +306,7 @@ HasherMd5::Finish(uint8_t* buffer, std::size_t& size)
 	/* Append length (before padding) */
 	Update(bits.data(), bits.size());
 	/* Store state in digest */
-	size = 16;
-	Encode(buffer, m_ctx.state, size);
+	Encode(buffer, m_ctx.state, ResultSize());
 
 	/* Zeroize sensitive information. */
 	std::memset(&m_ctx, 0, sizeof(m_ctx));

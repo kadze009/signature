@@ -572,7 +572,7 @@ Config::toString() const
 	NUMBER THREADS  = %zu
 	INPUT FILE      = %s
 	INPUT FILE SIZE = %zu
-	BYTES SHIFT     = %zu
+	BLOCK NUM SHIFT = %zu
 	OUTPUT FILE     = %s
 })",
 		m_logfile.c_str(),
@@ -583,7 +583,7 @@ Config::toString() const
 		m_numThreads,
 		m_inputFile.c_str(),
 		m_inputFileSize,
-		m_bytesShift,
+		m_blockNumShift,
 		m_outputFile.c_str());
 
     return str.c_str();

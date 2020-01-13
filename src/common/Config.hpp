@@ -27,6 +27,8 @@ public:
 	static constexpr std::uintmax_t DEFAULT_BLOCK_SIZE_KB = 1024;
 	static constexpr std::size_t DEFAULT_LOG_MSG_BATCH_SIZE = 100;
 	static constexpr std::string_view DEFAULT_LOGFILE  = "stdout";
+	static constexpr std::size_t DEFAULT_READ_BUF_SIZE = 4096;
+	static constexpr uint8_t DEFAULT_BLOCK_FILLER_BYTE = 0;
 
 	Config();
 
@@ -56,11 +58,14 @@ public:
 	std::string_view GetInputFile() const   { return m_inputFile; }
 	std::string_view GetOutputFile() const  { return m_outputFile; }
 	std::uintmax_t GetBlockSizeKB() const   { return m_blockSizeKB; }
+	std::uintmax_t GetInputFileSize() const { return m_inputFileSize; }
 	std::size_t GetBatchSizeOfLogMessages() const { return m_logMsgBatchSize; }
 	std::size_t GetThreadsNum() const       { return m_numThreads; }
+	std::size_t GetReadBufferSize() const   { return m_readBufSize; }
+	uint8_t GetBlockFiller() const          { return m_blockFiller; }
 
-	std::uintmax_t GetBytesShift() const    { return m_bytesShift; }
-	void SetBytesShift(std::uintmax_t v)    { m_bytesShift = v; }
+	std::uintmax_t GetBlockNumShift() const { return m_blockNumShift; }
+	void SetBlockNumShift(std::uintmax_t v) { m_blockNumShift = v; }
 
 private:
 	void ParseVerbose(std::string_view);
@@ -88,6 +93,8 @@ private:
 	std::string    m_inputFile;
 	std::uintmax_t m_inputFileSize   = 0;
 	init_algo_t    m_initAlgo;
+	std::size_t    m_readBufSize     = DEFAULT_READ_BUF_SIZE;     //TODO: add for configuring
+	uint8_t        m_blockFiller     = DEFAULT_BLOCK_FILLER_BYTE; //TODO: add for configuring
 
 	static BuildVersion_s const m_buildVersion;
 };

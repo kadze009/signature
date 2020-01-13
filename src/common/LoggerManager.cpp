@@ -61,7 +61,6 @@ LoggerManager::PushMessageBack(msg_t& msg)
 void
 LoggerManager::PrintMessage(std::string_view msg)
 {
-	//TODO: is it good idea print string_view without using size?
 	m_out.Write(msg);
 	m_out.Write('\n');
 }

@@ -28,5 +28,12 @@ HasherCrc32::Finish(uint8_t*, std::size_t&)
 	return 0;
 }
 
+
+std::size_t
+HasherCrc32::ResultSize() const
+{
+	return 4; //32 bits
+}
+
 } // namespace algo
 

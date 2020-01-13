@@ -25,7 +25,7 @@ namespace algo {
 
 // static
 HasherFactory::hasher_t
-HasherFactory::Create(InitHashStrategy& strategy) 
+HasherFactory::Create(InitHashStrategy const& strategy) 
 {
 	hasher_t hasher;
 	switch (strategy.GetType())
@@ -34,9 +34,8 @@ HasherFactory::Create(InitHashStrategy& strategy)
 	case hash_type_e::CRC32:          hasher.reset(new HasherCrc32); break;
 
 	case hash_type_e::UNKNOWN:
-		THROW_ERROR("%s", "Select UNKNOWN hasher");
+		THROW_ERROR("%s: Select UNKNOWN hasher", __FUNCTION__);
 	}
-	hasher->Init(strategy);
 	return hasher;
 }
 

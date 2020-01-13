@@ -34,6 +34,7 @@ public:
 	int Init(InitHashStrategy const&) override;
 	int Update(uint8_t const*, std::size_t) override;
 	int Finish(uint8_t*, std::size_t&) override;
+	std::size_t ResultSize() const override;
 
 private:
 	bool m_was_finished = false;

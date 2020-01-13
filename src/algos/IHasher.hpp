@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include <cstdint>
 
 #include "HasherFactory.hpp"
@@ -10,7 +12,25 @@ struct IHasher
 {
 	virtual int Init(InitHashStrategy const&)       = 0;
 	virtual int Update(uint8_t const*, std::size_t) = 0;
-	virtual int Finish(uint8_t*, std::size_t&)      = 0;
+	virtual int Finish(uint8_t*)                    = 0;
+	virtual std::size_t ResultSize() const          = 0;
+
+	int Update(uint8_t ch, std::size_t num_repeats = 1)
+	{
+		std::array<uint8_t, 128> filler;
+		filler.fill(ch);
+
+		std::size_t remains = num_repeats;
+		while (remains > num_repeats)
+		{
+			Update(filler.data(), filler.size());
+			remains -= filler.size();
+		}
+		if (remains > 0)
+		{
+			Update(filler.data(), remains);
+		}
+	}
 };
 
 } // namespace algo

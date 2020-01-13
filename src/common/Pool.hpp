@@ -28,16 +28,16 @@ public:
 	static_assert(std::is_base_of_v<ItemPool, T>, 
 	              "The items of a pool must be derived from the ItemPool class.");
 
+	Pool(Pool&&)                 = delete;
+	Pool(Pool const&)            = delete;
+	Pool& operator=(Pool&&)      = delete;
+	Pool& operator=(Pool const&) = delete;
+
 	Pool(std::size_t init_size, std::size_t inc_pool_size)
 		: m_inc_size(inc_pool_size)
 	{
 		m_pool.resize(init_size);
 	}
-
-	Pool(Pool&&)                 = delete;
-	Pool(Pool const&)            = delete;
-	Pool& operator=(Pool&&)      = delete;
-	Pool& operator=(Pool const&) = delete;
 	~Pool()                      = default;
 
 	T& allocate()

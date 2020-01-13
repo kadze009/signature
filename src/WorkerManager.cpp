@@ -7,8 +7,8 @@
 WorkerManager::WorkerManager(Config& config)
 	: m_cfg(config)
 {
-	m_cfg.SetBytesShift(
-		m_cfg.GetThreadsNum() * m_cfg.GetBlockSizeKB() * 1024);
+	// -1 because the main thread does not calculate hash
+	m_cfg.SetBlockNumShift(m_cfg.GetThreadsNum() - 1);
 
 	LOG_I("%s: final configuration:\n%s", __FUNCTION__, m_cfg.toString());
 }
