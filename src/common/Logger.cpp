@@ -2,6 +2,8 @@
 
 #include <chrono>
 #include <filesystem>
+#include <sstream>
+#include <thread>
 
 #include <cstdio>
 #include <cstdarg>
@@ -23,6 +25,15 @@ toString(Logger::log_level_e v)
 	case log_level_e::ERROR:   return "ERR";
 	}
 	return "UNKNOWN";
+}
+
+
+
+Logger::Logger()
+{
+	std::ostringstream ss;
+	ss << std::hex << std::this_thread::get_id();
+	m_thread_id = ss.str();
 }
 
 
@@ -59,7 +70,11 @@ Logger::LogMessage(
 	auto const sec  =   std::chrono::duration_cast<std::chrono::seconds>(duration);
 	auto const usec =   std::chrono::duration_cast<std::chrono::microseconds>(duration)
 	                  - std::chrono::duration_cast<std::chrono::microseconds>(sec);
-	sf.append("%s %ld.%06ld",  toString(lvl), sec.count(), usec.count());
+	sf.append("%s (%s) %ld.%06ld",
+	          toString(lvl),
+	          m_thread_id.c_str(),
+	          sec.count(),
+	          usec.count());
 	if (filename)
 	{
 		sf.append(" [%s:%zu]", std::filesystem::path(filename).filename().c_str(), line_n);

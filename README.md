@@ -49,3 +49,13 @@ EXAMPLES
     signature --block-size 32K input.dat out.dat -o sign_algo=md5 -o threads=5
 ```
 
+
+
+## TODO
+1. Rename the directory *algos* to *algo*.
+2. Create class which unions `Pool`, `ItemPool` (rename to *PoolItem*) and
+   managers logic: *AddItemToList* and *HandleBatchOfItems*. Look up the same
+   code for `LoggerManager` and `WorkerManager`.
+3. Change `FileReader` and `FileWriter` classes by `std::ofstream` and
+   `std::ifstream`.
+

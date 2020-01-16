@@ -6,7 +6,7 @@
 
 
 
-Worker::Worker(WorkerManager* mgr, std::size_t block_num)
+Worker::Worker(WorkerManager* mgr, std::uint64_t block_num)
 	: m_mgr(mgr)
 	, m_in(m_mgr->GetConfig().GetInputFile(), FileReader::file_type_e::BINARY)
 	, m_blockNum(block_num)
@@ -19,33 +19,63 @@ Worker::Worker(WorkerManager* mgr, std::size_t block_num)
 
 
 
-bool
+std::size_t
 Worker::ReadData(std::uintmax_t offset)
 {
-	//TODO: implement
-	return false;
+	m_in.SkipBytes(offset);
+	return m_in.Read(m_readBuffer.data(), m_readBuffer.size());
 }
 
 
 
-std::size_t
+std::uint64_t
 Worker::NextBlockNumber()
 {
-	m_blockNum += GetMgr()->GetConfig().GetBlockNumShift();
-	return m_blockNum;
+	return m_blockNum += m_mgr->GetConfig().GetBlockNumShift();
 }
 
 
 
 void
-Worker::run()
+Worker::RunAsync()
 {
-	Config const& cfg = m_mgr.GetConfig();
+	LOG_D("%s: start async running", __FUNCTION__);
+	m_future = std::async(std::launch::async, &Worker::Run, this);
+}
+
+
+
+void
+Worker::Run() noexcept
+{
+	m_isRunning = true;
+	try
+	{
+		DoWork();
+	}
+	catch(...)
+	{
+		m_exceptPtr = std::current_exception();
+	}
+
+	LOG_D("%s: Stop execution. The results pool size = %zu",
+	      __FUNCTION__, m_results.size());
+	m_isRunning = false;
+}
+
+
+
+void
+Worker::DoWork()
+{
+	Config const& cfg = m_mgr->GetConfig();
 	std::uintmax_t const block_size = cfg.GetBlockSizeKB() * 1024;
+	std::uintmax_t const file_size  = cfg.GetInputFileSize();
 	std::uintmax_t cur_offset = 0;
 	std::uintmax_t remains    = 0;
+	std::size_t read_bytes    = 0;
 
-	while ((cur_offset = m_blockNum * block_size) < cfg.GetInputFileSize())
+	while ((cur_offset = m_blockNum * block_size) < file_size)
 	{
 		LOG_I("%s: Start calculate BLOCK #%zu (offset=%zu)",
 		      __FUNCTION__, m_blockNum, cur_offset);
@@ -61,12 +91,12 @@ Worker::run()
 		m_hasher->Init(*cfg.GetInitAlgo());
 		while (remains > 0)
 		{
-			if (ReadData(cur_offset))
+			if ((read_bytes = ReadData(cur_offset)) != 0)
 			{
-				if (remains >= m_readBuffer.size())
+				if (remains >= read_bytes)
 				{
-					remains -= m_readBuffer.size();
-					m_hasher->Update(m_readBuffer.data(), m_readBuffer.size());
+					remains -= read_bytes;
+					m_hasher->Update(m_readBuffer.data(), read_bytes);
 				}
 				else
 				{
@@ -80,14 +110,23 @@ Worker::run()
 				remains = 0;
 			}
 		}
-		// result = m_results.alloc();
-		// result.SetBlockNum(m_blockNum);
-		// m_hasher->Finish(result.RefHashBuf());
-		// m_mgr.AddResult(result);
-		LOG_I("%s: Stop calculate BLOCK #%zu", __FUNCTION__, m_blockNum);
+		WorkerResult& result = m_results.allocate();
+		auto& hash_buf = result.RefHash();
+		hash_buf.resize(m_hasher->ResultSize()); //TODO: resize each time?
+		result.SetBlockNum(m_blockNum);
+		m_hasher->Finish(hash_buf.data());
+		m_mgr->AddResult(result);
 
+		LOG_I("%s: Finish calculate BLOCK #%zu", __FUNCTION__, m_blockNum);
 		NextBlockNumber();
 	}
-	LOG_D("%s: Stop execution.", __FUNCTION__);
+}
+
+
+
+void
+Worker::ThrowError() const
+{
+	if (HasError()) { std::rethrow_exception(m_exceptPtr); }
 }
 

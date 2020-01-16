@@ -30,6 +30,7 @@ struct IHasher
 		{
 			Update(filler.data(), remains);
 		}
+		return 0;
 	}
 };
 

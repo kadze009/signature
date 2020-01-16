@@ -41,7 +41,9 @@ public:
 	bool IsFlushing() const                { return m_out.IsFlushing(); }
 
 	void AddMessage(msg_t&);
-	void PrintBatchOfMessages(std::size_t batch_size);
+	void HandleBatchOfResults(std::size_t batch_size);
+	void HandleUnsavedResults();
+	bool HasUnsaved() const noexcept       { return m_head_msg != nullptr; }
 
 private:
 	void PushMessageBack(msg_t&);
@@ -54,8 +56,8 @@ private:
 	using print_mutex_t = std::mutex;
 	print_mutex_t m_print_mutex;
 	
-	LoggerMessage const*              m_head_msg  = nullptr;
-	std::atomic<LoggerMessage const*> m_last_msg  = nullptr;
+	msg_t*              m_head_msg  = nullptr;
+	std::atomic<msg_t*> m_last_msg  = nullptr;
 
 	FileWriter m_out;
 };

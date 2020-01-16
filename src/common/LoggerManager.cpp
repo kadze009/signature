@@ -83,7 +83,7 @@ LoggerManager::MakeFreeAndGetNext(msg_t& msg)
 
 
 void
-LoggerManager::PrintBatchOfMessages(std::size_t batch_size)
+LoggerManager::HandleBatchOfResults(std::size_t batch_size)
 {
 	if (not m_head_msg || batch_size == 0) { return; }
 
@@ -145,3 +145,15 @@ LoggerManager::SetLogfile(std::string_view filename)
 	}
 }
 
+
+void
+LoggerManager::HandleUnsavedResults()
+{
+	static constexpr std::size_t BATCH_SIZE = 128;
+	LOG_D("%s: start", __FUNCTION__);
+	while (HasUnsaved())
+	{
+		HandleBatchOfResults(BATCH_SIZE);
+	}
+	LOG_D("%s: stop", __FUNCTION__);
+}

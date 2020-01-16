@@ -10,7 +10,7 @@
 
 FileBase::FileBase(std::string_view name, char const* mode /* = nullptr */)
 {
-	this->Reset(name, mode);
+	Reset(name, mode);
 }
 
 

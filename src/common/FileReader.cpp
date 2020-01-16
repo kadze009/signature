@@ -37,3 +37,10 @@ FileReader::Read(uint8_t* buf_data, std::size_t buf_size)
 	return std::fread(buf_data, sizeof(*buf_data), buf_size, GetHandler());
 }
 
+
+void
+FileReader::SkipBytes(std::uintmax_t offset)
+{
+	std::fseek(GetHandler(), offset, SEEK_CUR);
+}
+

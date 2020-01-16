@@ -25,7 +25,7 @@ namespace algo {
 
 // static
 HasherFactory::hasher_t
-HasherFactory::Create(InitHashStrategy const& strategy) 
+HasherFactory::Create(InitHashStrategy const& strategy)
 {
 	hasher_t hasher;
 	switch (strategy.GetType())

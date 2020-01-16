@@ -21,13 +21,14 @@ main(int argc, char** argv)
 	std::size_t log_batch_size = config.GetBatchSizeOfLogMessages();
 	log_mgr.SetSyncMode(false);
 	wrk_mgr.Start();
-
 	do
 	{
-		log_mgr.PrintBatchOfMessages(log_batch_size);
+		log_mgr.HandleBatchOfResults(log_batch_size);
 		wrk_mgr.DoWork();
 	}
-	while (not wrk_mgr.IsFinished());
+	while (not wrk_mgr.WasFinished());
+	log_mgr.HandleUnsavedResults();
+	wrk_mgr.HandleUnsavedResults();
 
 	return 0;
 }

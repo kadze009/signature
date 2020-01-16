@@ -28,6 +28,14 @@ FileWriter::Reset(std::string_view name, file_type_e type)
 
 
 void
+FileWriter::Write(char ch)
+{
+	std::fputc(ch, GetHandler());
+	FlushIfNeeded();
+}
+
+
+void
 FileWriter::Write(std::string_view sv)
 {
 	Write(reinterpret_cast<uint8_t const*>(sv.data()), sv.size());
@@ -50,9 +58,10 @@ FileWriter::Write(uint8_t const* data, std::size_t size)
 
 
 void
-FileWriter::Write(char ch)
+FileWriter::Write(void const* data, std::size_t elem_size, std::size_t elem_count)
 {
-	std::fputc(ch, GetHandler());
-	FlushIfNeeded();
+	auto const* bin_data = static_cast<uint8_t const*>(data);
+	std::size_t bin_size = elem_size * elem_count;
+	Write(bin_data, bin_size);
 }
 

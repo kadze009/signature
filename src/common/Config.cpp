@@ -211,6 +211,8 @@ THROW_INVALID_ARGUMENT(char const* fmt, ...)
 bool
 Config::ParseArgs(int argc, char** argv)
 {
+	LOG_D("%s: start parsing... Will be processed %d args", __FUNCTION__, argc);
+
 	int i_arg = 1;
 	try
 	{
@@ -326,6 +328,8 @@ Config::ParseArgs(int argc, char** argv)
 		PrintHelp();
 		return false;
 	}
+
+	LOG_D("%s: parsing ends successful", __FUNCTION__);
 	return true;
 }
 

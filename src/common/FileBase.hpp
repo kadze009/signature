@@ -10,9 +10,7 @@
 class FileBase
 {
 public:
-	FileBase(FileBase&&)                  = delete;
 	FileBase(FileBase const&)             = delete;
-	FileBase& operator= (FileBase&&)      = delete;
 	FileBase& operator= (FileBase const&) = delete;
 
 	void SetFlushing(bool is_need)   { m_need_flush = is_need; }
@@ -25,6 +23,8 @@ public:
 protected:
 	FileBase(std::string_view, char const* mode = nullptr);
 	~FileBase();
+	FileBase(FileBase&&)             = default;
+	FileBase& operator= (FileBase&&) = default;
 
 	FILE* GetHandler()               { return m_file; }
 	void Close();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdexcept>
+#include <string>
 
 #include <cstdint>
 
@@ -43,12 +44,15 @@ public:
 		ERROR,
 	};
 
+	Logger();
+
 	void LogErr(char const* filename, std::size_t line, char const* fmt, ...);
 	void LogWrn(char const* filename, std::size_t line, char const* fmt, ...);
 	void LogInf(char const* filename, std::size_t line, char const* fmt, ...);
 	void LogDbg(char const* filename, std::size_t line, char const* fmt, ...);
 
 private:
+
 	void LogMessage(
 		log_level_e    lvl,
 		char const*    filename,
@@ -56,9 +60,11 @@ private:
 		char const*    fmt,
 		va_list        vlist);
 
-	static constexpr std::size_t INIT_POOL_SIZE = 50;
+	static constexpr std::size_t INIT_POOL_SIZE = 32;
 	static constexpr std::size_t INC_POOL_SIZE  = 16;
 	Pool<LoggerMessage>    m_pool {INIT_POOL_SIZE, INC_POOL_SIZE};
+
+	std::string            m_thread_id;
 };
 
 char const* toString(Logger::log_level_e);

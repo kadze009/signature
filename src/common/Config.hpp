@@ -64,8 +64,8 @@ public:
 	std::size_t GetReadBufferSize() const   { return m_readBufSize; }
 	uint8_t GetBlockFiller() const          { return m_blockFiller; }
 
-	std::uintmax_t GetBlockNumShift() const { return m_blockNumShift; }
-	void SetBlockNumShift(std::uintmax_t v) { m_blockNumShift = v; }
+	std::uint64_t GetBlockNumShift() const  { return m_blockNumShift; }
+	void SetBlockNumShift(std::uint64_t v)  { m_blockNumShift = v; }
 
 private:
 	void ParseVerbose(std::string_view);
@@ -85,7 +85,6 @@ private:
 	//log_lvl_e    m_actLogLvl       = log_lvl_e::WARNING;  //TODO: uncomment
 	log_lvl_e      m_actLogLvl       = log_lvl_e::DEBUG;
 	std::uintmax_t m_blockSizeKB     = DEFAULT_BLOCK_SIZE_KB;
-	std::uintmax_t m_bytesShift      = 0;
 	std::size_t    m_logMsgBatchSize = DEFAULT_LOG_MSG_BATCH_SIZE;
 	std::size_t    m_numThreads      = DEFAULT_THREAD_NUM; // As many as possible
 	std::string    m_logfile         { DEFAULT_LOGFILE };
@@ -93,6 +92,7 @@ private:
 	std::string    m_inputFile;
 	std::uintmax_t m_inputFileSize   = 0;
 	init_algo_t    m_initAlgo;
+	std::uint64_t  m_blockNumShift   = 0; // will be set by WorkerManager
 	std::size_t    m_readBufSize     = DEFAULT_READ_BUF_SIZE;     //TODO: add for configuring
 	uint8_t        m_blockFiller     = DEFAULT_BLOCK_FILLER_BYTE; //TODO: add for configuring
 
