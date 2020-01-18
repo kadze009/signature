@@ -7,7 +7,6 @@
 
 
 FileWriter::FileWriter(std::string_view name, file_type_e type)
-	: FileBase("stdout")
 {
 	this->Reset(name, type);
 }

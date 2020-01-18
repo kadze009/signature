@@ -13,6 +13,16 @@
 
 
 
+#define ENABLE_COLOR
+
+#ifdef ENABLE_COLOR
+#define BASH_COLOR(NUM) << (char)033 << "[1;" << (NUM) << 'm'
+#else
+#define BASH_COLOR(NUM)
+#endif
+
+
+
 char const*
 toString(Logger::log_level_e v)
 {
@@ -29,11 +39,23 @@ toString(Logger::log_level_e v)
 
 
 
+std::atomic_uint32_t Logger::m_counter = ATOMIC_VAR_INIT(0);
+
 Logger::Logger()
 {
+	Logger::m_counter.fetch_add(1, std::memory_order_relaxed);
 	std::ostringstream ss;
-	ss << std::hex << std::this_thread::get_id();
+	ss
+	   BASH_COLOR((Logger::m_counter % 7) + 30)
+	   << std::hex << std::this_thread::get_id()
+	   BASH_COLOR(0);
 	m_thread_id = ss.str();
+}
+
+
+Logger::~Logger()
+{
+	--Logger::m_counter;
 }
 
 

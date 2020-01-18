@@ -23,6 +23,7 @@ public:
 protected:
 	FileBase(std::string_view, char const* mode = nullptr);
 	~FileBase();
+	FileBase()                       = default;
 	FileBase(FileBase&&)             = default;
 	FileBase& operator= (FileBase&&) = default;
 
@@ -32,7 +33,7 @@ protected:
 
 private:
 	std::string_view m_name;
-	FILE*            m_file;
+	FILE*            m_file       = nullptr;
 	bool             m_need_flush = false;
 };
 

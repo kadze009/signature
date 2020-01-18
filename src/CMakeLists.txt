@@ -8,7 +8,7 @@ and computes the signature of the each block. The signatures is saved in\\n\\\n\
 output file.")
 
 
-set (CMAKE_CXX_STANDARD 20)
+set (CMAKE_CXX_STANDARD 17)
 add_definitions(-Wall -Werror -O0 -pthread)
 
 

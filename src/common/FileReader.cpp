@@ -3,7 +3,6 @@
 
 
 FileReader::FileReader(std::string_view name, file_type_e type /* = file_type_e::BINARY */)
-	: FileBase("stdin")
 {
 	this->Reset(name, type);
 }

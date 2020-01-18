@@ -1,5 +1,7 @@
 #include "WorkerManager.hpp"
 
+#include <thread>
+#include <chrono>
 #include <algorithm>
 
 #include "common/Logger.hpp"
@@ -87,6 +89,10 @@ WorkerManager::DoWork() noexcept
 		}
 		HandleBatchOfResults(m_resultsBatchSize);
 	} //if (not IsAborting())
+	else
+	{
+		if (m_wasFinished) { m_isAborting = false; }
+	}
 }
 
 
@@ -172,7 +178,6 @@ WorkerManager::HandleUnsavedResults()
 	{
 		HandleBatchOfResults(m_resultsBatchSize);
 	}
-	LOG_D("%s: stop", __FUNCTION__);
 }
 
 
@@ -180,6 +185,7 @@ WorkerManager::HandleUnsavedResults()
 void
 WorkerManager::StartAborting() noexcept
 {
+	m_isAborting = true;
 	LOG_W("%s: start aborting", __FUNCTION__);
 	for (Worker& w : m_workers)
 	{

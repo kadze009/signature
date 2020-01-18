@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <atomic>
 
 #include <cstdint>
 
@@ -10,6 +11,16 @@
 #include "Pool.hpp"
 #include "StringFormer.hpp"
 
+
+//#define ENABLE_DEBUG
+
+#ifdef ENABLE_DEBUG
+#include <cstdio>
+#define DEBUG(FMT, ...) fprintf(stderr,\
+	"LOG [" __FILE__ ":%d]: " FMT "\n", __LINE__, __VA_ARGS__)
+#else
+#define DEBUG(FMT, ...)
+#endif
 
 
 #define LOG_E(FMT, ...) \
@@ -45,6 +56,7 @@ public:
 	};
 
 	Logger();
+	~Logger();
 
 	void LogErr(char const* filename, std::size_t line, char const* fmt, ...);
 	void LogWrn(char const* filename, std::size_t line, char const* fmt, ...);
@@ -65,6 +77,8 @@ private:
 	Pool<LoggerMessage>    m_pool {INIT_POOL_SIZE, INC_POOL_SIZE};
 
 	std::string            m_thread_id;
+
+	static std::atomic_uint32_t m_counter;
 };
 
 char const* toString(Logger::log_level_e);

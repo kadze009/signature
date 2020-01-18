@@ -49,6 +49,7 @@ void
 Worker::Run() noexcept
 {
 	m_isRunning = true;
+	LOG_D("%s: Start execution", __FUNCTION__);
 	try
 	{
 		DoWork();

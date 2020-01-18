@@ -150,10 +150,8 @@ void
 LoggerManager::HandleUnsavedResults()
 {
 	static constexpr std::size_t BATCH_SIZE = 128;
-	LOG_D("%s: start", __FUNCTION__);
 	while (HasUnsaved())
 	{
 		HandleBatchOfResults(BATCH_SIZE);
 	}
-	LOG_D("%s: stop", __FUNCTION__);
 }
