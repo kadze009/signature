@@ -84,7 +84,7 @@ private:
 
 	static constexpr std::size_t INIT_RESULTS_SIZE = 32;
 	static constexpr std::size_t INC_RESULTS_POOL  = 16;
-	Pool<WorkerResult>   m_results {INIT_RESULTS_SIZE, INC_RESULTS_POOL};
+	Pool<WorkerResult>&  m_results;
 	readbuf_t            m_readBuffer;
 
 	std::exception_ptr   m_exceptPtr;

@@ -1,6 +1,7 @@
 #include "Worker.hpp"
 
 #include "common/Logger.hpp"
+#include "common/PoolManager.hpp"
 #include "algos/HasherFactory.hpp"
 #include "WorkerManager.hpp"
 
@@ -9,6 +10,8 @@
 Worker::Worker(WorkerManager* mgr, std::uint64_t block_num)
 	: m_mgr(mgr)
 	, m_in(m_mgr->GetConfig().GetInputFile(), FileReader::file_type_e::BINARY)
+	, m_results(PoolManager::RefInstance()
+	            .NewPool<WorkerResult>(INIT_RESULTS_SIZE, INC_RESULTS_POOL))
 	, m_blockNum(block_num)
 {
 	Config const& cfg = m_mgr->GetConfig();
