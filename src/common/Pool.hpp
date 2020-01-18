@@ -55,6 +55,10 @@ public:
 
 	std::size_t size() const { return m_pool.size(); }
 
+	void MakeNonFree()       { m_isFree = false; }
+	void MakeFree()          { m_isFree = true; }
+	bool IsFree() const      { return m_isFree; }
+
 private:
 	T* GetFree()
 	{
@@ -65,5 +69,6 @@ private:
 
 	std::size_t   m_inc_size;
 	std::deque<T> m_pool;
+	bool          m_isFree   = true;
 };
 

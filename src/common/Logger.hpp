@@ -12,7 +12,7 @@
 #include "StringFormer.hpp"
 
 
-//#define ENABLE_DEBUG
+#define ENABLE_DEBUG
 
 #ifdef ENABLE_DEBUG
 #include <cstdio>
@@ -74,7 +74,7 @@ private:
 
 	static constexpr std::size_t INIT_POOL_SIZE = 32;
 	static constexpr std::size_t INC_POOL_SIZE  = 16;
-	Pool<LoggerMessage>    m_pool {INIT_POOL_SIZE, INC_POOL_SIZE};
+	Pool<LoggerMessage>&   m_pool;
 
 	std::string            m_thread_id;
 

@@ -29,6 +29,7 @@ public:
 	using msg_t = LoggerMessage const;
 
 	LoggerManager();
+	~LoggerManager();
 
 	void NewLogfile(std::string_view filename);
 	void SetLogfile(std::string_view filename);

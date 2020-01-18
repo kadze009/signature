@@ -20,6 +20,12 @@ LoggerManager::LoggerManager()
 }
 
 
+LoggerManager::~LoggerManager()
+{
+	DEBUG("%s: dtor", __FUNCTION__);
+}
+
+
 void
 LoggerManager::AddMessage(msg_t& msg)
 {
@@ -150,6 +156,7 @@ void
 LoggerManager::HandleUnsavedResults()
 {
 	static constexpr std::size_t BATCH_SIZE = 128;
+	LOG_D("%s: start handling", __FUNCTION__);
 	while (HasUnsaved())
 	{
 		HandleBatchOfResults(BATCH_SIZE);

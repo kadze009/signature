@@ -40,6 +40,7 @@ void
 Worker::RunAsync()
 {
 	LOG_D("%s: start async running", __FUNCTION__);
+	m_isRunning = true;
 	m_future = std::async(std::launch::async, &Worker::Run, this);
 }
 
@@ -48,7 +49,6 @@ Worker::RunAsync()
 void
 Worker::Run() noexcept
 {
-	m_isRunning = true;
 	LOG_D("%s: Start execution", __FUNCTION__);
 	try
 	{

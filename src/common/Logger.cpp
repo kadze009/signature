@@ -9,6 +9,7 @@
 #include <cstdarg>
 
 #include "Config.hpp"
+#include "PoolManager.hpp"
 #include "LoggerManager.hpp"
 
 
@@ -42,11 +43,13 @@ toString(Logger::log_level_e v)
 std::atomic_uint32_t Logger::m_counter = ATOMIC_VAR_INIT(0);
 
 Logger::Logger()
+	: m_pool(PoolManager::RefInstance()
+	         .NewPool<LoggerMessage>(INIT_POOL_SIZE, INC_POOL_SIZE))
 {
-	Logger::m_counter.fetch_add(1, std::memory_order_relaxed);
+	auto count_val = Logger::m_counter.fetch_add(1, std::memory_order_relaxed);
 	std::ostringstream ss;
 	ss
-	   BASH_COLOR((Logger::m_counter % 7) + 30)
+	   BASH_COLOR((count_val % 7) + 30)
 	   << std::hex << std::this_thread::get_id()
 	   BASH_COLOR(0);
 	m_thread_id = ss.str();
@@ -55,7 +58,7 @@ Logger::Logger()
 
 Logger::~Logger()
 {
-	--Logger::m_counter;
+	m_pool.MakeFree();
 }
 
 
