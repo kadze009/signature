@@ -5,11 +5,6 @@
 #include "WorkerManager.hpp"
 
 
-#include <chrono>
-#include <thread>
-#include "common/Logger.hpp"
-#include "common/PoolManager.hpp"
-
 
 int
 main(int argc, char** argv)
@@ -32,26 +27,8 @@ main(int argc, char** argv)
 		wrk_mgr.DoWork();
 	}
 	while (not wrk_mgr.WasFinished());
+	wrk_mgr.HandleUnsavedResults(); //NOTE: call it before pushing LoggerManager
 	log_mgr.HandleUnsavedResults();
-	wrk_mgr.HandleUnsavedResults();
-
-	//zhaldak debug: start
-	std::size_t lm_pools = 0;
-	for (auto const& p : PoolManager::RefInstance().RefPools<LoggerMessage>())
-	{
-		++lm_pools;
-		DEBUG("LoggerMessage pool[%zu].size = %zu", lm_pools, p.size());
-	}
-	DEBUG("LoggerMessage pools = %zu", lm_pools);
-
-	std::size_t wr_pools = 0;
-	for (auto const& p : PoolManager::RefInstance().RefPools<WorkerResult>())
-	{
-		++wr_pools;
-		DEBUG("WorkerResult pool[%zu].size = %zu", wr_pools, p.size());
-	}
-	DEBUG("WorkerResult pools = %zu", wr_pools);
-	//zhaldak debug: stop
 
 	return 0;
 }

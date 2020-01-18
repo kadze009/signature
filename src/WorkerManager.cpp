@@ -102,7 +102,7 @@ WorkerManager::AddResult(result_t& result)
 {
 	// The `memory_order`s are taken from
 	// [here](https://en.cppreference.com/w/cpp/atomic/atomic/compare_exchange).
-	result_t* old_last = m_last_res.load(std::memory_order_relaxed);
+	result_t* old_last = m_last_res.load();
 	while (not m_last_res.compare_exchange_weak(old_last, &result,
 	                                            std::memory_order_release,
 	                                            std::memory_order_relaxed))
@@ -136,25 +136,14 @@ WorkerManager::HandleBatchOfResults(std::size_t batch_size)
 	if (not m_head_res || batch_size == 0) { return; }
 
 	LOG_D("%s: batch_size = %zu", __FUNCTION__, batch_size);
-	result_t* act_last = m_last_res.load(std::memory_order_relaxed);
+	result_t* act_last = m_last_res.load();
 	std::size_t i = 0;
-
-	do
+	while (i != batch_size && m_head_res != act_last)
 	{
-		while (m_head_res != act_last)
-		{
-			SaveResult(*m_head_res);
-			m_head_res = MakeFreeAndGetNext(*m_head_res);
-			++i;
-			if (i == batch_size) { return; }
-		}
+		SaveResult(*m_head_res);
+		m_head_res = MakeFreeAndGetNext(*m_head_res);
+		++i;
 	}
-	while(not m_last_res.compare_exchange_weak(act_last, nullptr,
-	                                           std::memory_order_release,
-	                                           std::memory_order_relaxed));
-	SaveResult(*act_last);
-	// Expected that the last node of list has `nullptr` as a result of `GetNext`.
-	m_head_res = MakeFreeAndGetNext(*act_last);
 }
 
 
@@ -170,14 +159,20 @@ WorkerManager::SaveResult(result_t& res)
 
 
 
+// NOTE: The function must be called only in the single thread environment,
+// i.e. when no sub threads.
 void
 WorkerManager::HandleUnsavedResults()
 {
 	LOG_D("%s: start", __FUNCTION__);
-	while (HasUnsaved())
+	auto* last_one = m_last_res.load(std::memory_order_relaxed);
+	if (not last_one) { return; }
+	while (m_head_res != last_one)
 	{
 		HandleBatchOfResults(m_resultsBatchSize);
 	}
+	SaveResult(*m_head_res);
+	m_head_res = MakeFreeAndGetNext(*m_head_res);
 }
 
 
