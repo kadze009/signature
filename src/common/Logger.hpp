@@ -12,7 +12,7 @@
 #include "StringFormer.hpp"
 
 
-#define ENABLE_DEBUG
+//#define ENABLE_DEBUG
 
 #ifdef ENABLE_DEBUG
 #include <cstdio>

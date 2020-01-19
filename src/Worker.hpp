@@ -9,7 +9,7 @@
 
 #include "common/Pool.hpp"
 #include "common/FileReader.hpp"
-#include "algos/IHasher.hpp"
+#include "algo/IHasher.hpp"
 
 
 

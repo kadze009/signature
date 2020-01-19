@@ -4,7 +4,7 @@
 
 #include "common/Logger.hpp"
 #include "common/PoolManager.hpp"
-#include "algos/HasherFactory.hpp"
+#include "algo/HasherFactory.hpp"
 #include "WorkerManager.hpp"
 
 

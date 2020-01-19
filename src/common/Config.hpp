@@ -10,7 +10,7 @@
 
 #include "Singletone.hpp"
 #include "Logger.hpp"
-#include "algos/HasherFactory.hpp"
+#include "algo/HasherFactory.hpp"
 
 
 

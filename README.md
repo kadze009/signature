@@ -52,7 +52,6 @@ EXAMPLES
 
 
 ## TODO
-1. Rename the directory *algos* to *algo*.
 2. Create class which unions `Pool`, `ItemPool` (rename to *PoolItem*) and
    managers logic: *AddItemToList* and *HandleBatchOfItems*. Look up the same
    code for `LoggerManager` and `WorkerManager`.

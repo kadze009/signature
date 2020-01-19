@@ -12,8 +12,8 @@
 
 #include "BuildVersion.hpp"
 #include "StringFormer.hpp"
-#include "algos/HasherMd5.hpp"
-#include "algos/HasherCrc32.hpp"
+#include "algo/HasherMd5.hpp"
+#include "algo/HasherCrc32.hpp"
 
 
 
