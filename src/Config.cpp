@@ -38,7 +38,7 @@ Config::PrintUsage() const
 {
 	fprintf(stderr,
 "Usage:\n"
-"    " APP_NAME " [KEYS]... INPUT_FILE OUTPUT_FILE\n");
+"    " APP_NAME " [KEYS]... <INPUT_FILE> <OUTPUT_FILE>\n");
 }
 
 

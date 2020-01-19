@@ -1,8 +1,8 @@
 # signature
 
-The application splits the input file on blocks with the selected size and
-computes the signature of the each block. The signatures is saved in output
-file.
+The pure C++17 application which splits the input file on blocks with the
+selected size and computes the signature of the each block. The signatures
+is saved in output file.
 
 
 
@@ -10,7 +10,7 @@ file.
 
 ```
 Usage:
-    signature [KEYS]... INPUT_FILE OUTPUT_FILE
+    signature [KEYS]... <INPUT_FILE> <OUTPUT_FILE>
 
 DESCRIPTION
     The application splits the input file on blocks with a selected size and
@@ -68,7 +68,7 @@ There are some **singletone** entities in the application:
     application entities request.
 
 The main work is processed by entries of class *Worker*. This class
-   1. splits input file by blocks,,
+   1. splits input file by blocks,
    2. calculates signature of block,
    3. saves the signature and block number,
    4. sends the result to the *WorkerManager*.
@@ -97,5 +97,5 @@ The multithread handling is split by two part:
      sizes, number of pools, execution time);
    - `runtime_stats=BOOL`: calculate and print Workers' statistics
      (microseconds for block processing)
-3. Implement CRC32 algorithm
+3. **WARNING**: Implement CRC32 algorithm.
 
