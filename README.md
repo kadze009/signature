@@ -1,11 +1,13 @@
 # signature
 
-The program which splits the input file on blocks with the selected size and
+The application splits the input file on blocks with the selected size and
 computes the signature of the each block. The signatures is saved in output
 file.
 
 
+
 ## Usage
+
 ```
 Usage:
     signature [KEYS]... INPUT_FILE OUTPUT_FILE
@@ -51,7 +53,40 @@ EXAMPLES
 
 
 
+## Architecture overview
+
+There are some **singletone** entities in the application:
+  * `Config` - a class, which pareses input attributes and contains common
+    options.
+  * `Logger` - **thread local** class, which provide functionalities for creation
+    logging messages.
+  * `LoggerManager` - class, which links messages from *Logger* and deffered
+    writes them.
+  * `WorkerManager` - class, which creates, stores and handles results of
+    *Workers*.
+  * `PoolManager` - class, which creates and stores lists of pools which other
+    application entities request.
+
+The main work is processed by entries of class *Worker*. This class
+   1. splits input file by blocks,,
+   2. calculates signature of block,
+   3. saves the signature and block number,
+   4. sends the result to the *WorkerManager*.
+
+The class pairs of (*Worker*, *WorkerManager*) and (*Logger*, *LoggerManager*)
+works the same. Them a similar work is implemented in `IThreadProcessor` class.
+The multithread handling is split by two part:
+   1. Get an item from a pool, fill it and send to the manager. The manager
+      adds the item to the end of itself linked list (Compare-And-Swap
+      paradigm).
+   2. On the time, the manager handles batch of items from the head of its
+      internal list to the pre-last node of the list or the selected number of
+      list's nodes.
+
+
+
 ## TODO
+
 1. Change `FileReader` and `FileWriter` classes by `std::ofstream` and
    `std::ifstream`.
 2. Add APP's attribute options:
