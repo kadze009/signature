@@ -12,8 +12,8 @@ Usage:
 
 DESCRIPTION
     The application splits the input file on blocks with a selected size and
-computes the signature of the each block. The signatures is saved in output
-file.
+    computes the signature of the each block. The signatures is saved in output
+    file.
 
 KEYS
     -h, --help
@@ -52,9 +52,9 @@ EXAMPLES
 
 
 ## TODO
-3. Change `FileReader` and `FileWriter` classes by `std::ofstream` and
+1. Change `FileReader` and `FileWriter` classes by `std::ofstream` and
    `std::ifstream`.
-4. Add APP's attribute options:
+2. Add APP's attribute options:
    - `read_buffer_size=BYTES`: initial value for read buffer;
    - `block_filler=CHAR`: the symbol which will be used for filling block if
      needed;
@@ -62,5 +62,5 @@ EXAMPLES
      sizes, number of pools, execution time);
    - `runtime_stats=BOOL`: calculate and print Workers' statistics
      (microseconds for block processing)
-5. Implement CRC32 algorithm
+3. Implement CRC32 algorithm
 

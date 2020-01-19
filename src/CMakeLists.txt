@@ -4,8 +4,8 @@ project(signature
 VERSION 0.1.000002
 DESCRIPTION
 "The application splits the input file on blocks with a selected size and\\n\\\n\
-computes the signature of the each block. The signatures is saved in output\\n\\\n\
-file.")
+    computes the signature of the each block. The signatures is saved in output\\n\\\n\
+    file.")
 
 
 set (CMAKE_CXX_STANDARD 17)
