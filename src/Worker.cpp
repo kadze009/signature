@@ -3,8 +3,8 @@
 #include <algorithm>
 
 #include "common/Logger.hpp"
-#include "common/PoolManager.hpp"
 #include "algo/HasherFactory.hpp"
+#include "PoolManager.hpp"
 #include "WorkerManager.hpp"
 
 

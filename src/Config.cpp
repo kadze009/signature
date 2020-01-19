@@ -10,8 +10,8 @@
 #include <cstdio>
 #include <cstdarg>
 
+#include "common/StringFormer.hpp"
 #include "BuildVersion.hpp"
-#include "StringFormer.hpp"
 #include "algo/HasherMd5.hpp"
 #include "algo/HasherCrc32.hpp"
 

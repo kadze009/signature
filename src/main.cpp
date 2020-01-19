@@ -1,13 +1,13 @@
 #include <iostream>
 
-#include "common/Config.hpp"
-#include "common/LoggerManager.hpp"
+#include "Config.hpp"
+#include "LoggerManager.hpp"
 #include "WorkerManager.hpp"
 
 
 
 #ifdef ENABLE_DEBUG
-#include "common/PoolManager.hpp"
+#include "PoolManager.hpp"
 template<typename T>
 void pool_stats(char const* name)
 {

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "common/Config.hpp"
 #include "common/IThreadProcessor.hpp"
 #include "common/FileWriter.hpp"
+#include "Config.hpp"
 #include "Worker.hpp"
 
 

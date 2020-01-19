@@ -7,10 +7,10 @@
 #include <cstdint>
 #include <cstdio>
 
-#include "LoggerMessage.hpp"
-#include "Singletone.hpp"
-#include "IThreadProcessor.hpp"
-#include "FileWriter.hpp"
+#include "common/LoggerMessage.hpp"
+#include "common/Singletone.hpp"
+#include "common/IThreadProcessor.hpp"
+#include "common/FileWriter.hpp"
 
 
 

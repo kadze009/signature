@@ -8,8 +8,8 @@
 
 #include <cstdint>
 
-#include "Singletone.hpp"
-#include "Logger.hpp"
+#include "common/Singletone.hpp"
+#include "common/Logger.hpp"
 #include "algo/HasherFactory.hpp"
 
 
