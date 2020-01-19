@@ -58,4 +58,12 @@ EXAMPLES
    code for `LoggerManager` and `WorkerManager`.
 3. Change `FileReader` and `FileWriter` classes by `std::ofstream` and
    `std::ifstream`.
+4. Add APP's attribute options:
+   - `read_buffer_size=BYTES`: initial value for read buffer;
+   - `block_filler=CHAR`: the symbol which will be used for filling block if
+     needed;
+   - `final_stats=BOOL`: print some statistics at the end of execution (pools
+     sizes, number of pools, execution time);
+   - `runtime_stats=BOOL`: calculate and print Workers' statistics
+     (microseconds for block processing)
 
