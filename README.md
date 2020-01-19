@@ -52,9 +52,6 @@ EXAMPLES
 
 
 ## TODO
-2. Create class which unions `Pool`, `ItemPool` (rename to *PoolItem*) and
-   managers logic: *AddItemToList* and *HandleBatchOfItems*. Look up the same
-   code for `LoggerManager` and `WorkerManager`.
 3. Change `FileReader` and `FileWriter` classes by `std::ofstream` and
    `std::ifstream`.
 4. Add APP's attribute options:

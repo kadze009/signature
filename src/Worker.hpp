@@ -26,7 +26,8 @@ public:
 	std::uint64_t GetBlockNum() const            { return m_blockNum; }
 	hash_t const& GetHash() const                { return m_hash; }
 
-	void MakeFree() const                        { m_next = nullptr; Release(); }
+	// Used by IThreadProcessor
+	void EndOfHandle() const                     { m_next = nullptr; Release(); }
 	void SetNext(WorkerResult const* next) const { m_next = next; }
 	WorkerResult const* GetNext() const          { return m_next; }
 

@@ -108,7 +108,7 @@ Worker::DoWork()
 		hash_buf.resize(m_hasher->ResultSize()); //TODO: resize each time?
 		result.SetBlockNum(m_blockNum);
 		m_hasher->Finish(hash_buf.data());
-		m_mgr->AddResult(result);
+		m_mgr->AddItem(result);
 
 		m_in.SkipNextBytes(bytes_shift);
 		LOG_I("%s: Finish calculate BLOCK #%zu", __FUNCTION__, m_blockNum);

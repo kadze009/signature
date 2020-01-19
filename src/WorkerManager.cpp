@@ -8,13 +8,6 @@
 
 
 
-namespace {
-
-using result_t = WorkerManager::result_t;
-
-} // namespace
-
-
 WorkerManager::WorkerManager(Config& config)
 	: m_cfg(config)
 	, m_out(m_cfg.GetOutputFile(), FileWriter::file_type_e::TEXT)
@@ -89,7 +82,7 @@ WorkerManager::DoWork() noexcept
 		{
 			LOG_I("%s: all Workers were finish", __FUNCTION__);
 		}
-		HandleBatchOfResults(m_resultsBatchSize);
+		HandleBatchOfItems(m_resultsBatchSize);
 	} //if (not IsAborting())
 	else
 	{
@@ -100,81 +93,12 @@ WorkerManager::DoWork() noexcept
 
 
 void
-WorkerManager::AddResult(result_t& result)
-{
-	// The `memory_order`s are taken from
-	// [here](https://en.cppreference.com/w/cpp/atomic/atomic/compare_exchange).
-	result_t* old_last = m_last_res.load();
-	while (not m_last_res.compare_exchange_weak(old_last, &result,
-	                                            std::memory_order_release,
-	                                            std::memory_order_relaxed))
-	{}
-
-	if (old_last)
-	{
-		old_last->SetNext(&result);
-	}
-	else
-	{
-		m_head_res = &result;
-	}
-}
-
-
-
-result_t*
-WorkerManager::MakeFreeAndGetNext(result_t& res)
-{
-	result_t* next = res.GetNext();
-	res.MakeFree();
-	return next;
-}
-
-
-
-void
-WorkerManager::HandleBatchOfResults(std::size_t batch_size)
-{
-	if (not m_head_res || batch_size == 0) { return; }
-
-	//LOG_D("%s: batch_size = %zu", __FUNCTION__, batch_size);
-	result_t* act_last = m_last_res.load();
-	std::size_t i = 0;
-	while (i != batch_size && m_head_res != act_last)
-	{
-		SaveResult(*m_head_res);
-		m_head_res = MakeFreeAndGetNext(*m_head_res);
-		++i;
-	}
-}
-
-
-
-void
-WorkerManager::SaveResult(result_t& res)
+WorkerManager::HandleItem(WorkerResult const& res)
 {
 	auto const  bnum = res.GetBlockNum();
 	auto const& hash = res.GetHash();
 	m_out.Write(&bnum, sizeof(bnum), 1);
 	m_out.Write(hash.data(), hash.size());
-}
-
-
-
-// NOTE: The function must be called only in the single thread environment,
-// i.e. when no sub threads.
-void
-WorkerManager::HandleUnsavedResults()
-{
-	LOG_D("%s: start", __FUNCTION__);
-	auto* last_one = m_last_res.load(std::memory_order_relaxed);
-	if (not last_one) { return; }
-	while (m_head_res != last_one)
-	{
-		HandleBatchOfResults(m_resultsBatchSize);
-	}
-	SaveResult(*m_head_res);
-	m_head_res = MakeFreeAndGetNext(*m_head_res);
 }
 
 

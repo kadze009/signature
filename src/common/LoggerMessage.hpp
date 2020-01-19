@@ -25,7 +25,8 @@ public:
 	content_t& RefContent()           { return m_content; }
 	std::string_view GetSV() const    { return std::string_view(m_content.data()); }
 
-	void MakeFree() const                         { m_next = nullptr; Release(); }
+	// Used by ThreadProcessor
+	void EndOfHandle() const                      { m_next = nullptr; Release(); }
 	void SetNext(LoggerMessage const* next) const { m_next = next; }
 	LoggerMessage const* GetNext() const          { return m_next; }
 

@@ -1,17 +1,14 @@
 #pragma once
 
-#include <atomic>
-
 #include "common/Config.hpp"
+#include "common/IThreadProcessor.hpp"
 #include "common/FileWriter.hpp"
 #include "Worker.hpp"
 
 
-class WorkerManager
+class WorkerManager : public IThreadProcessor<WorkerResult>
 {
 public:
-	using result_t = WorkerResult const;
-
 	static constexpr std::size_t DEFAULT_RESULTS_BATCH_SIZE = 128;
 
 	WorkerManager(WorkerManager&&)                 = delete;
@@ -29,19 +26,12 @@ public:
 	void StartAborting() noexcept;
 	Config const& GetConfig() const                { return m_cfg; }
 
-	void AddResult(result_t& res);
-	void HandleBatchOfResults(std::size_t batch_size);
-	void HandleUnsavedResults();
-
 private:
-	result_t* MakeFreeAndGetNext(result_t&);
-	void SaveResult(result_t&);
+	// IThreadProcessor
+	void HandleItem(WorkerResult const&) override;
 
 	Worker* FindFailedWorker();
 	bool AreAllWorkersStop() const;
-
-	result_t*              m_head_res  = nullptr;
-	std::atomic<result_t*> m_last_res  = nullptr;
 
 	Config&               m_cfg;
 	FileWriter            m_out;

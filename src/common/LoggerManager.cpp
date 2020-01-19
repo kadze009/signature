@@ -1,16 +1,12 @@
 #include "LoggerManager.hpp"
 
 #include <array>
+#include <functional>
 
 #include <ctime>
 
 #include "Config.hpp"
 
-
-
-namespace {
-using msg_t = LoggerManager::msg_t;
-} // namespace
 
 
 LoggerManager::LoggerManager()
@@ -20,45 +16,18 @@ LoggerManager::LoggerManager()
 }
 
 
-LoggerManager::~LoggerManager()
-{
-}
-
-
 void
-LoggerManager::AddMessage(msg_t& msg)
+LoggerManager::AddMessage(LoggerMessage const& msg)
 {
 	if (not IsSyncMode())
 	{
-		PushMessageBack(msg);
+		AddItem(msg);
 	}
 	else
 	{
 		std::lock_guard<print_mutex_t> _lg(m_print_mutex);
-		PrintMessage(msg);
-		msg.MakeFree();
-	}
-}
-
-
-void
-LoggerManager::PushMessageBack(msg_t& msg)
-{
-	// The `memory_order`s are taken from
-	// [here](https://en.cppreference.com/w/cpp/atomic/atomic/compare_exchange).
-	msg_t* old_last = m_last_msg.load();
-	while (not m_last_msg.compare_exchange_weak(old_last, &msg,
-	                                            std::memory_order_release,
-	                                            std::memory_order_relaxed))
-	{}
-
-	if (old_last)
-	{
-		old_last->SetNext(&msg);
-	}
-	else
-	{
-		m_head_msg = &msg;
+		HandleItem(msg);
+		msg.EndOfHandle();
 	}
 }
 
@@ -68,38 +37,6 @@ LoggerManager::PrintMessage(std::string_view msg)
 {
 	m_out.Write(msg);
 	m_out.Write('\n');
-}
-
-
-void
-LoggerManager::PrintMessage(msg_t& msg)
-{
-	PrintMessage(msg.GetSV());
-}
-
-
-msg_t*
-LoggerManager::MakeFreeAndGetNext(msg_t& msg)
-{
-	msg_t* next = msg.GetNext();
-	msg.MakeFree();
-	return next;
-}
-
-
-void
-LoggerManager::HandleBatchOfResults(std::size_t batch_size)
-{
-	if (not m_head_msg || batch_size == 0) { return; }
-
-	msg_t* act_last = m_last_msg.load();
-	std::size_t i = 0;
-	while (i != batch_size && m_head_msg != act_last)
-	{
-		PrintMessage(*m_head_msg);
-		m_head_msg = MakeFreeAndGetNext(*m_head_msg);
-		++i;
-	}
 }
 
 
@@ -139,20 +76,9 @@ LoggerManager::SetLogfile(std::string_view filename)
 }
 
 
-// NOTE: The function must be called only in the single thread environment,
-// i.e. when no sub threads.
 void
-LoggerManager::HandleUnsavedResults()
+LoggerManager::HandleItem(LoggerMessage const& msg)
 {
-	static constexpr std::size_t BATCH_SIZE = 128;
-	LOG_D("%s: start", __FUNCTION__);
-
-	auto* last_one = m_last_msg.load(std::memory_order_relaxed);
-	if (not last_one) { return; }
-	while (m_head_msg != last_one)
-	{
-		HandleBatchOfResults(BATCH_SIZE);
-	}
-	PrintMessage(*m_head_msg);
-	m_head_msg = MakeFreeAndGetNext(*m_head_msg);
+	PrintMessage(msg.GetSV());
 }
+

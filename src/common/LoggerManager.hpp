@@ -7,8 +7,9 @@
 #include <cstdint>
 #include <cstdio>
 
-#include "Singletone.hpp"
 #include "LoggerMessage.hpp"
+#include "Singletone.hpp"
+#include "IThreadProcessor.hpp"
 #include "FileWriter.hpp"
 
 
@@ -23,13 +24,14 @@
 //      then it's the error of developer and can `throw 666;`
 //      (uncathchable exception)
 //
-class LoggerManager : public Singletone<LoggerManager>
+class LoggerManager : public Singletone<LoggerManager>,
+                      public IThreadProcessor<LoggerMessage>
 {
 public:
-	using msg_t = LoggerMessage const;
-
 	LoggerManager();
-	~LoggerManager();
+	~LoggerManager() = default;
+
+	void AddMessage(LoggerMessage const&);
 
 	void NewLogfile(std::string_view filename);
 	void SetLogfile(std::string_view filename);
@@ -41,24 +43,15 @@ public:
 	void SetFlushing(bool need_flush)      { m_out.SetFlushing(need_flush); }
 	bool IsFlushing() const                { return m_out.IsFlushing(); }
 
-	void AddMessage(msg_t&);
-	void HandleBatchOfResults(std::size_t batch_size);
-	void HandleUnsavedResults();
-
 private:
-	void PushMessageBack(msg_t&);
-	void PrintMessage(msg_t&);
-	void PrintMessage(std::string_view);
-	msg_t* MakeFreeAndGetNext(msg_t&);
+	// IThreadProcessor
+	void HandleItem(LoggerMessage const&) override;
 
-	bool m_needSync  = true;
+	void PrintMessage(std::string_view);
 
 	using print_mutex_t = std::mutex;
-	print_mutex_t m_print_mutex;
-	
-	msg_t*              m_head_msg  = nullptr;
-	std::atomic<msg_t*> m_last_msg  = nullptr;
-
-	FileWriter m_out;
+	print_mutex_t    m_print_mutex;
+	FileWriter       m_out;
+	bool             m_needSync  = true;
 };
 

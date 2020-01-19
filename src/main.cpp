@@ -42,12 +42,12 @@ main(int argc, char** argv)
 	wrk_mgr.Start();
 	do
 	{
-		log_mgr.HandleBatchOfResults(log_batch_size);
+		log_mgr.HandleBatchOfItems(log_batch_size);
 		wrk_mgr.DoWork();
 	}
 	while (not wrk_mgr.WasFinished());
-	wrk_mgr.HandleUnsavedResults(); //NOTE: call it before pushing LoggerManager
-	log_mgr.HandleUnsavedResults();
+	wrk_mgr.HandleUnprocessed();
+	log_mgr.HandleUnprocessed();
 
 #ifdef ENABLE_DEBUG
 	pool_stats<LoggerMessage>("LoggerMessage");
