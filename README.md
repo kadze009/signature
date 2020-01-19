@@ -11,9 +11,9 @@ Usage:
     signature [KEYS]... INPUT_FILE OUTPUT_FILE
 
 DESCRIPTION
-    The program which splits the input file on blocks with the selected size
-and computes the signature of the each block. The signatures is saved in
-output file.
+    The application splits the input file on blocks with a selected size and
+computes the signature of the each block. The signatures is saved in output
+file.
 
 KEYS
     -h, --help
@@ -34,7 +34,7 @@ KEYS
         set special option:
         * sign_algo=[crc32,md5] (default: md5)
             signature algorithm
-        * threads=NUM (default: as many threads as possible)
+        * threads=NUM (default: as many threads as available)
             integer number of threads for processing
             (at least 2: one -- manager, others -- workers)
         * log_file=<file path> (default: stdout)
@@ -66,4 +66,5 @@ EXAMPLES
      sizes, number of pools, execution time);
    - `runtime_stats=BOOL`: calculate and print Workers' statistics
      (microseconds for block processing)
+5. Implement CRC32 algorithm
 

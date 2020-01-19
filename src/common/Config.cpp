@@ -69,7 +69,7 @@ R"(KEYS
         set special option:
         * sign_algo=[crc32,md5] (default: md5)
             signature algorithm
-        * threads=NUM (default: as many threads as possible)
+        * threads=NUM (default: as many threads as available)
             integer number of threads for processing
             (at least 2: one -- manager, others -- workers)
         * log_file=<file path> (default: stdout)
@@ -381,8 +381,11 @@ Config::ParseBlockSize(std::string_view value)
 
 		switch (res.ptr[0])
 		{
+		case 'k':
 		case 'K': break;
+		case 'm':
 		case 'M': m_blockSizeKB *= 1024; break;
+		case 'g':
 		case 'G': m_blockSizeKB *= 1024*1024; break;
 		default:
 			THROW_INVALID_ARGUMENT(
