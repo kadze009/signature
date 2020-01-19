@@ -19,27 +19,29 @@ WorkerManager::WorkerManager(Config& config)
 	: m_cfg(config)
 	, m_out(m_cfg.GetOutputFile(), FileWriter::file_type_e::TEXT)
 {
-	// -1 because the main thread does not calculate hash
-	std::uint64_t worker_num = m_cfg.GetThreadsNum() - 1;
-	m_cfg.SetBlockNumShift(worker_num);
-
-	std::uintmax_t last_block_num =
-		m_cfg.GetInputFileSize() / (m_cfg.GetBlockSizeKB() * 1024);
-	if (m_cfg.GetInputFileSize() % (m_cfg.GetBlockSizeKB() * 1024) != 0)
+	std::uint64_t const block_size = m_cfg.GetBlockSizeKB() * 1024;
+	std::uint64_t blocks_count = m_cfg.GetInputFileSize() / block_size;
+	if (m_cfg.GetInputFileSize() % block_size != 0)
 	{
-		++last_block_num;
+		++blocks_count;
 	}
-	LOG_I("%s: will be created %zu Workers and will be processed %zu blocks",
-	      __FUNCTION__, worker_num, last_block_num);
+	// -1 because the main thread does not calculate hash
+	std::uint64_t worker_num = std::min(m_cfg.GetThreadsNum() - 1, blocks_count);
 
 	m_workers.reserve(worker_num);
-	for (std::uint64_t i = 0; i < worker_num; ++i)
+	for (std::uint64_t block_num = 0; block_num < worker_num; ++block_num)
 	{
-		if (i <= last_block_num)
-		{
-			m_workers.emplace_back(this, i);
-		}
+		m_workers.emplace_back(this, block_num);
 	}
+	LOG_I("%s: create %zu Workers and will be processed %zu blocks",
+	      __FUNCTION__, m_workers.size(), blocks_count);
+
+	// -1 because block counter start from 0
+	m_cfg.SetLastBlockNum(blocks_count - 1);
+	m_cfg.SetBlocksShift(m_workers.size());
+
+	// -1 because one block has read this thread and next blocks should skip
+	m_cfg.SetFileBytesShift(block_size * (m_workers.size() - 1));
 
 	LOG_I("%s: final configuration:\n%s", __FUNCTION__, m_cfg.toString());
 }
@@ -135,7 +137,7 @@ WorkerManager::HandleBatchOfResults(std::size_t batch_size)
 {
 	if (not m_head_res || batch_size == 0) { return; }
 
-	LOG_D("%s: batch_size = %zu", __FUNCTION__, batch_size);
+	//LOG_D("%s: batch_size = %zu", __FUNCTION__, batch_size);
 	result_t* act_last = m_last_res.load();
 	std::size_t i = 0;
 	while (i != batch_size && m_head_res != act_last)

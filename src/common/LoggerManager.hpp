@@ -44,7 +44,6 @@ public:
 	void AddMessage(msg_t&);
 	void HandleBatchOfResults(std::size_t batch_size);
 	void HandleUnsavedResults();
-	bool HasUnsaved() const noexcept       { return m_head_msg != nullptr; }
 
 private:
 	void PushMessageBack(msg_t&);

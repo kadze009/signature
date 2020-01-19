@@ -292,7 +292,6 @@ HasherMd5::Finish(uint8_t* buffer)
 		            __FUNCTION__);
 	}
 
-	m_was_finished = true;
 	std::array<uint8_t, 8> bits;
 
 	/* Save number of bits */
@@ -311,6 +310,7 @@ HasherMd5::Finish(uint8_t* buffer)
 	/* Zeroize sensitive information. */
 	std::memset(&m_ctx, 0, sizeof(m_ctx));
 
+	m_was_finished = true;
 	return 0;
 }
 

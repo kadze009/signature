@@ -211,8 +211,6 @@ THROW_INVALID_ARGUMENT(char const* fmt, ...)
 bool
 Config::ParseArgs(int argc, char** argv)
 {
-	LOG_D("%s: start parsing... Will be processed %d args", __FUNCTION__, argc);
-
 	int i_arg = 1;
 	try
 	{
@@ -329,7 +327,6 @@ Config::ParseArgs(int argc, char** argv)
 		return false;
 	}
 
-	LOG_D("%s: parsing ends successful", __FUNCTION__);
 	return true;
 }
 
@@ -572,23 +569,24 @@ Config::toString() const
 	LOG LEVEL       = %s
 	LOG BATCH SIZE  = %zu
 	ALGORITHM       = %s
-	BLOCK SIZE (KB) = %zu
 	NUMBER THREADS  = %zu
 	INPUT FILE      = %s
 	INPUT FILE SIZE = %zu
-	BLOCK NUM SHIFT = %zu
 	OUTPUT FILE     = %s
+	BLOCK SIZE (KB) = %zu
+	LAST BLOCK NUM  = %zu
 })",
-		m_logfile.c_str(),
-		::toString(m_actLogLvl),
-		m_logMsgBatchSize,
-		::toString(m_initAlgo->GetType()),
-		m_blockSizeKB,
-		m_numThreads,
-		m_inputFile.c_str(),
-		m_inputFileSize,
-		m_blockNumShift,
-		m_outputFile.c_str());
+		  m_logfile.c_str()
+		, ::toString(m_actLogLvl)
+		, m_logMsgBatchSize
+		, ::toString(m_initAlgo->GetType())
+		, m_numThreads
+		, m_inputFile.c_str()
+		, m_inputFileSize
+		, m_outputFile.c_str()
+		, m_blockSizeKB
+		, m_lastBlockNum
+		);
 
     return str.c_str();
 }

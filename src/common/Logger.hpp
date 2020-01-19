@@ -72,8 +72,8 @@ private:
 		char const*    fmt,
 		va_list        vlist);
 
-	static constexpr std::size_t INIT_POOL_SIZE = 32;
-	static constexpr std::size_t INC_POOL_SIZE  = 16;
+	static constexpr std::size_t INIT_POOL_SIZE = 64;
+	static constexpr std::size_t INC_POOL_SIZE  = 32;
 	Pool<LoggerMessage>&   m_pool;
 
 	std::string            m_thread_id;

@@ -73,17 +73,14 @@ private:
 
 	void Run() noexcept;
 	void DoWork();
-	std::size_t ReadData(std::uintmax_t offset); // retrun the number of read bytes
-	std::uint64_t NextBlockNumber();
-
 
 	WorkerManager*       m_mgr;
 	hasher_t             m_hasher;
 	future_t             m_future;
 	FileReader           m_in;
 
-	static constexpr std::size_t INIT_RESULTS_SIZE = 32;
-	static constexpr std::size_t INC_RESULTS_POOL  = 16;
+	static constexpr std::size_t INIT_RESULTS_SIZE = 64;
+	static constexpr std::size_t INC_RESULTS_POOL  = 32;
 	Pool<WorkerResult>&  m_results;
 	readbuf_t            m_readBuffer;
 

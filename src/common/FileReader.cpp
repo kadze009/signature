@@ -1,5 +1,7 @@
 #include "FileReader.hpp"
 
+#include <limits>
+
 
 
 FileReader::FileReader(std::string_view name, file_type_e type /* = file_type_e::BINARY */)
@@ -38,8 +40,15 @@ FileReader::Read(uint8_t* buf_data, std::size_t buf_size)
 
 
 void
-FileReader::SkipBytes(std::uintmax_t offset)
+FileReader::SkipNextBytes(std::uintmax_t offset)
 {
+	constexpr std::uintmax_t max_offset = std::numeric_limits<long>::max();
+	if (offset == 0) { return; }
+	if (offset > max_offset)
+	{
+		std::fseek(GetHandler(), max_offset, SEEK_CUR);
+		offset -= max_offset;
+	}
 	std::fseek(GetHandler(), offset, SEEK_CUR);
 }
 

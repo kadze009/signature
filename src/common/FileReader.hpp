@@ -21,6 +21,6 @@ public:
 
 	std::size_t Read(char* buf_data, std::size_t buf_size);
 	std::size_t Read(uint8_t* buf_data, std::size_t buf_size);
-	void SkipBytes(std::uintmax_t offset);
+	void SkipNextBytes(std::uintmax_t offset);
 };
 

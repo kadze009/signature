@@ -17,11 +17,11 @@ struct IHasher
 
 	int Update(uint8_t ch, std::size_t num_repeats = 1)
 	{
-		std::array<uint8_t, 128> filler;
+		std::array<uint8_t, 256> filler;
 		filler.fill(ch);
 
 		std::size_t remains = num_repeats;
-		while (remains > num_repeats)
+		while (remains > filler.size())
 		{
 			Update(filler.data(), filler.size());
 			remains -= filler.size();

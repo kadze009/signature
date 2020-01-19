@@ -6,6 +6,25 @@
 
 
 
+#ifdef ENABLE_DEBUG
+#include "common/PoolManager.hpp"
+template<typename T>
+void pool_stats(char const* name)
+{
+	DEBUG("=== Stats for %s ===", name);
+	auto& pools = PoolManager::RefInstance().RefPools<T>();
+	std::size_t pool_counter = 0;
+	for (auto& pool : pools)
+	{
+		++pool_counter;
+		DEBUG("> #%02zu: size=%zu", pool_counter, pool.size());
+	}
+	DEBUG("===( count = %zu )===", pool_counter);
+}
+#endif
+
+
+
 int
 main(int argc, char** argv)
 {
@@ -30,6 +49,10 @@ main(int argc, char** argv)
 	wrk_mgr.HandleUnsavedResults(); //NOTE: call it before pushing LoggerManager
 	log_mgr.HandleUnsavedResults();
 
+#ifdef ENABLE_DEBUG
+	pool_stats<LoggerMessage>("LoggerMessage");
+	pool_stats<WorkerResult>("WorkerResult");
+#endif
 	return 0;
 }
 

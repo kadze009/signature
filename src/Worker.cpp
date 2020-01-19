@@ -1,5 +1,7 @@
 #include "Worker.hpp"
 
+#include <algorithm>
+
 #include "common/Logger.hpp"
 #include "common/PoolManager.hpp"
 #include "algos/HasherFactory.hpp"
@@ -17,24 +19,7 @@ Worker::Worker(WorkerManager* mgr, std::uint64_t block_num)
 	Config const& cfg = m_mgr->GetConfig();
 
 	m_hasher = algo::HasherFactory::Create(*cfg.GetInitAlgo());
-	m_readBuffer.resize(cfg.GetReadBufferSize());
-}
-
-
-
-std::size_t
-Worker::ReadData(std::uintmax_t offset)
-{
-	m_in.SkipBytes(offset);
-	return m_in.Read(m_readBuffer.data(), m_readBuffer.size());
-}
-
-
-
-std::uint64_t
-Worker::NextBlockNumber()
-{
-	return m_blockNum += m_mgr->GetConfig().GetBlockNumShift();
+	m_readBuffer.resize(std::min(cfg.GetReadBufferSize(), cfg.GetBlockSizeKB()*1024));
 }
 
 
@@ -73,34 +58,38 @@ void
 Worker::DoWork()
 {
 	Config const& cfg = m_mgr->GetConfig();
-	std::uintmax_t const block_size = cfg.GetBlockSizeKB() * 1024;
-	std::uintmax_t const file_size  = cfg.GetInputFileSize();
-	std::uintmax_t cur_offset = 0;
-	std::uintmax_t remains    = 0;
-	std::size_t read_bytes    = 0;
+	std::uint64_t const last_block_num = cfg.GetLastBlockNum();
+	std::uint64_t const blocks_shift   = cfg.GetBlocksShift();
+	std::uintmax_t const bytes_shift   = cfg.GetFileBytesShift();
+	std::uintmax_t const block_size    = cfg.GetBlockSizeKB() * 1024;
 
-	while ((cur_offset = m_blockNum * block_size) < file_size)
+	if (m_blockNum > last_block_num) { return; }
+	LOG_D("%s: shift file pointer on the %zuth block", __FUNCTION__, m_blockNum);
+	m_in.SkipNextBytes(block_size * m_blockNum);
+
+	std::uintmax_t remains = 0;
+	std::size_t read_bytes = 0;
+	while (m_blockNum <= last_block_num)
 	{
-		LOG_I("%s: Start calculate BLOCK #%zu (offset=%zu)",
-		      __FUNCTION__, m_blockNum, cur_offset);
-
-		remains = block_size;
+		LOG_I("%s: Start calculate BLOCK #%zu", __FUNCTION__, m_blockNum);
 		if (IsNeedStop())
 		{
 			LOG_W("%s: Detect 'stop' sign. Abort calculation BLOCK #%zu.",
 			      __FUNCTION__, m_blockNum);
 			break;
 		}
-
+		remains = block_size;
 		m_hasher->Init(*cfg.GetInitAlgo());
-		while (remains > 0)
+
+		while (remains != 0)
 		{
-			if ((read_bytes = ReadData(cur_offset)) != 0)
+			read_bytes = m_in.Read(m_readBuffer.data(), m_readBuffer.size());
+			if (read_bytes != 0)
 			{
-				if (remains >= read_bytes)
+				if (remains > read_bytes)
 				{
-					remains -= read_bytes;
 					m_hasher->Update(m_readBuffer.data(), read_bytes);
+					remains -= read_bytes;
 				}
 				else
 				{
@@ -121,8 +110,9 @@ Worker::DoWork()
 		m_hasher->Finish(hash_buf.data());
 		m_mgr->AddResult(result);
 
+		m_in.SkipNextBytes(bytes_shift);
 		LOG_I("%s: Finish calculate BLOCK #%zu", __FUNCTION__, m_blockNum);
-		NextBlockNumber();
+		m_blockNum += blocks_shift;
 	}
 }
 

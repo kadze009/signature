@@ -64,8 +64,16 @@ public:
 	std::size_t GetReadBufferSize() const   { return m_readBufSize; }
 	uint8_t GetBlockFiller() const          { return m_blockFiller; }
 
-	std::uint64_t GetBlockNumShift() const  { return m_blockNumShift; }
-	void SetBlockNumShift(std::uint64_t v)  { m_blockNumShift = v; }
+	// NOTE: uint64_t for determinating byte size of block number which will
+	//       be recorded
+	void SetLastBlockNum(std::uint64_t v)   { m_lastBlockNum = v; }
+	std::uint64_t GetLastBlockNum() const   { return m_lastBlockNum; }
+
+	void SetBlocksShift(std::uint64_t v)    { m_blocksShift = v; }
+	std::uint64_t GetBlocksShift() const    { return m_blocksShift; }
+
+	void SetFileBytesShift(std::uintmax_t v) { m_fileBytesShift = v; }
+	std::uintmax_t GetFileBytesShift() const { return m_fileBytesShift; }
 
 private:
 	void ParseVerbose(std::string_view);
@@ -82,8 +90,7 @@ private:
 	decltype(start_clock_t::now()) const m_startDateTime;
 	decltype(clock_t::now()) const       m_startMoment;
 
-	//log_lvl_e    m_actLogLvl       = log_lvl_e::WARNING;  //TODO: uncomment
-	log_lvl_e      m_actLogLvl       = log_lvl_e::DEBUG;
+	log_lvl_e      m_actLogLvl       = log_lvl_e::WARNING;
 	std::uintmax_t m_blockSizeKB     = DEFAULT_BLOCK_SIZE_KB;
 	std::size_t    m_logMsgBatchSize = DEFAULT_LOG_MSG_BATCH_SIZE;
 	std::size_t    m_numThreads      = DEFAULT_THREAD_NUM; // As many as possible
@@ -92,7 +99,9 @@ private:
 	std::string    m_inputFile;
 	std::uintmax_t m_inputFileSize   = 0;
 	init_algo_t    m_initAlgo;
-	std::uint64_t  m_blockNumShift   = 0; // will be set by WorkerManager
+	std::uint64_t  m_blocksShift     = 0; // will be set by WorkerManager
+	std::uint64_t  m_lastBlockNum    = 0; // will be set by WorkerManager
+	std::uintmax_t m_fileBytesShift  = 0; // will be set by WorkerManager
 	std::size_t    m_readBufSize     = DEFAULT_READ_BUF_SIZE;     //TODO: add for configuring
 	uint8_t        m_blockFiller     = DEFAULT_BLOCK_FILLER_BYTE; //TODO: add for configuring
 

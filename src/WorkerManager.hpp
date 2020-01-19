@@ -31,10 +31,7 @@ public:
 
 	void AddResult(result_t& res);
 	void HandleBatchOfResults(std::size_t batch_size);
-
 	void HandleUnsavedResults();
-	bool HasUnsaved() const noexcept               { return m_head_res != nullptr; }
-
 
 private:
 	result_t* MakeFreeAndGetNext(result_t&);
