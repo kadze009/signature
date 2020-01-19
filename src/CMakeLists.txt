@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 project(signature
-VERSION 0.1.000002
+VERSION 1.0.000000
 DESCRIPTION
 "The application splits the input file on blocks with a selected size and\\n\\\n\
     computes the signature of the each block. The signatures is saved in output\\n\\\n\
@@ -9,7 +9,7 @@ DESCRIPTION
 
 
 set (CMAKE_CXX_STANDARD 17)
-add_definitions(-Wall -Werror -O0 -pthread)
+add_definitions(-Wall -Werror -O3 -pthread)
 
 
 SET(SRC
