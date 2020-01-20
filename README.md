@@ -1,8 +1,8 @@
 # signature
 
-The pure C++17 application which splits the input file on blocks with the
-selected size and computes the signature of the each block. The signatures
-is saved in output file.
+`signature` is the application which was written on pure C++17. The app splits
+the input file on blocks with the selected size and computes the signature of
+the each block simultaneously. The signatures are saved in output file.
 
 
 
@@ -14,8 +14,8 @@ Usage:
 
 DESCRIPTION
     The application splits the input file on blocks with a selected size and
-    computes the signature of the each block. The signatures is saved in output
-    file.
+    computes the signature of the each block. The signatures are saved in
+    output file.
 
 KEYS
     -h, --help
@@ -53,35 +53,34 @@ EXAMPLES
 
 
 
-## Architecture overview
+## The application architecture overview
 
 There are some **singletone** entities in the application:
   * `Config` - a class, which pareses input attributes and contains common
     options.
-  * `Logger` - **thread local** class, which provide functionalities for creation
-    logging messages.
-  * `LoggerManager` - class, which links messages from *Logger* and deffered
+  * `Logger` - a **thread local** class, which provide functionalities for
+    creation logging messages.
+  * `LoggerManager` - a class, which links messages from *Logger* and deffered
     writes them.
-  * `WorkerManager` - class, which creates, stores and handles results of
+  * `WorkerManager` - a class, which creates, stores and handles results of
     *Workers*.
-  * `PoolManager` - class, which creates and stores lists of pools which other
-    application entities request.
+  * `PoolManager` - a class, which creates and stores lists of pools which
+    other application entities request.
 
-The main work is processed by entries of class *Worker*. This class
+A main work is processed by entries of class *Worker*. This class
    1. splits input file by blocks,
    2. calculates signature of block,
    3. saves the signature and block number,
    4. sends the result to the *WorkerManager*.
 
-The class pairs of (*Worker*, *WorkerManager*) and (*Logger*, *LoggerManager*)
-works the same. Them a similar work is implemented in `IThreadProcessor` class.
-The multithread handling is split by two part:
-   1. Get an item from a pool, fill it and send to the manager. The manager
-      adds the item to the end of itself linked list (Compare-And-Swap
-      paradigm).
+The class pairs (*Worker*, *WorkerManager*) and (*Logger*, *LoggerManager*)
+works the same, and their similar work is implemented in `IThreadProcessor`
+class. The multithread handling is split by two parts:
+   1. Get an item from a pool, fill it and send to a manager. The manager
+      adds the item to the end of itself linked list (Compare-And-Swap paradigm).
    2. On the time, the manager handles batch of items from the head of its
-      internal list to the pre-last node of the list or the selected number of
-      list's nodes.
+      internal list to the pre-last node of the list or the selected number
+      of list's nodes.
 
 
 
