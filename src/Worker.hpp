@@ -54,7 +54,7 @@ public:
 	Worker(Worker const&)             = delete;
 	Worker& operator= (Worker const&) = delete;
 
-	Worker(WorkerManager* mgr, std::uint64_t block_num);
+	Worker(WorkerManager& mgr, std::uint64_t block_num);
 	Worker(Worker&&)             = default;
 	Worker& operator= (Worker&&) = default;
 	~Worker()                    = default;

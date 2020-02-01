@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 
 project(signature
 VERSION 1.0.000001
 DESCRIPTION
-"The application splits the input file on blocks with a selected size and\\n\\\n\
-    computes the signature of the each block. The signatures are saved in\\n\\\n\
-    output ile.")
+"The application splits the input file on blocks of selected size and computes\\n\\\n\
+    the signature of each block simultaneously. The signatures are saved to\\n\\\n\
+    output file.")
 
 
 set (CMAKE_CXX_STANDARD 17)

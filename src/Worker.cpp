@@ -9,8 +9,8 @@
 
 
 
-Worker::Worker(WorkerManager* mgr, std::uint64_t block_num)
-	: m_mgr(mgr)
+Worker::Worker(WorkerManager& mgr, std::uint64_t block_num)
+	: m_mgr(&mgr)
 	, m_in(m_mgr->GetConfig().GetInputFile(), FileReader::file_type_e::BINARY)
 	, m_results(PoolManager::RefInstance()
 	            .NewPool<WorkerResult>(INIT_RESULTS_SIZE, INC_RESULTS_POOL))

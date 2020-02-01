@@ -1,8 +1,8 @@
 # signature
 
-`signature` is the application which was written on pure C++17. The app splits
-the input file on blocks with the selected size and computes the signature of
-the each block simultaneously. The signatures are saved in output file.
+`signature` is an application which was written on pure C++17. The app splits
+the input file on blocks of selected size and computes the signature of each
+block simultaneously. The signatures are saved to output file.
 
 
 
@@ -29,7 +29,7 @@ KEYS
 
     -b, --block-size BLOCK_SIZE (default: 1M)
         the size of block on which input file is split. The value supports
-        suffixes: K=KiloByte, M=MegaByte, G=GigaByte. A number without suffix
+        suffixes: K=Kilobyte, M=Megabyte, G=Gigabyte. A number without suffix
         is KiloBytes.
 
     -o, --option OPTION
@@ -56,11 +56,11 @@ EXAMPLES
 ## The application architecture overview
 
 There are some **singletone** entities in the application:
-  * `Config` - a class, which pareses input attributes and contains common
+  * `Config` - a class, which parses input attributes and contains common
     options.
   * `Logger` - a **thread local** class, which provide functionalities for
     creation logging messages.
-  * `LoggerManager` - a class, which links messages from *Logger* and deffered
+  * `LoggerManager` - a class, which links messages from *Logger* and deferred
     writes them.
   * `WorkerManager` - a class, which creates, stores and handles results of
     *Workers*.

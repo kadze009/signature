@@ -62,7 +62,7 @@ R"(KEYS
 
     -b, --block-size BLOCK_SIZE (default: 1M)
         the size of block on which input file is split. The value supports
-        suffixes: K=KiloByte, M=MegaByte, G=GigaByte. A number without suffix
+        suffixes: K=Kilobyte, M=Megabyte, G=Gigabyte. A number without suffix
         is KiloBytes.
 
     -o, --option OPTION

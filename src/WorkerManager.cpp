@@ -24,7 +24,7 @@ WorkerManager::WorkerManager(Config& config)
 	m_workers.reserve(worker_num);
 	for (std::uint64_t block_num = 0; block_num < worker_num; ++block_num)
 	{
-		m_workers.emplace_back(this, block_num);
+		m_workers.emplace_back(*this, block_num);
 	}
 	LOG_I("%s: create %zu Workers and will be processed %zu blocks",
 	      __FUNCTION__, m_workers.size(), blocks_count);
