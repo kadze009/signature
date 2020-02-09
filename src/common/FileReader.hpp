@@ -1,26 +1,34 @@
 #pragma once
 
-#include "FileBase.hpp"
+#include <string_view>
+#include <iosfwd>
+#include <memory>
+
+#include <cstdint>
 
 
 
-class FileReader : public virtual FileBase
+class FileReader
 {
 public:
-	enum class file_type_e : uint8_t { TEXT, BINARY };
+	static constexpr std::string_view DEFAULT_NAME {"stdin"};
 
 	FileReader(FileReader const&)             = delete;
 	FileReader& operator= (FileReader const&) = delete;
+	FileReader(FileReader&&)                  = default;
+	FileReader& operator= (FileReader&&)      = default;
 
-	FileReader(std::string_view name, file_type_e type = file_type_e::BINARY);
-	FileReader(FileReader&&)             = default;
-	FileReader& operator= (FileReader&&) = default;
-	~FileReader()                        = default;
-
-	void Reset(std::string_view name, file_type_e type = file_type_e::BINARY);
+	FileReader(char const* name);
+	~FileReader();
 
 	std::size_t Read(char* buf_data, std::size_t buf_size);
 	std::size_t Read(uint8_t* buf_data, std::size_t buf_size);
 	void SkipNextBytes(std::uintmax_t offset);
+
+private:
+	void ClearHandler() noexcept;
+
+	char const*                      m_name;
+	std::unique_ptr<std::istream>    m_in;
 };
 

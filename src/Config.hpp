@@ -54,9 +54,9 @@ public:
 
 	init_algo_t const& GetInitAlgo() const  { return m_initAlgo; }
 	log_lvl_e GetActualLogLevel() const     { return m_actLogLvl; }
-	std::string_view GetLogfile() const     { return m_logfile; }
-	std::string_view GetInputFile() const   { return m_inputFile; }
-	std::string_view GetOutputFile() const  { return m_outputFile; }
+	std::string const& GetLogfile() const   { return m_logfile; }
+	std::string const& GetInputFile() const { return m_inputFile; }
+	std::string const& GetOutputFile() const{ return m_outputFile; }
 	std::uintmax_t GetBlockSizeKB() const   { return m_blockSizeKB; }
 	std::uintmax_t GetInputFileSize() const { return m_inputFileSize; }
 	std::size_t GetBatchSizeOfLogMessages() const { return m_logMsgBatchSize; }
