@@ -16,7 +16,6 @@ SET(SRC
 	${PROJECT_SOURCE_DIR}/algo/HasherFactory.cpp
 	${PROJECT_SOURCE_DIR}/algo/HasherCrc32.cpp
 	${PROJECT_SOURCE_DIR}/algo/HasherMd5.cpp
-	${PROJECT_SOURCE_DIR}/common/FileBase.cpp
 	${PROJECT_SOURCE_DIR}/common/FileReader.cpp
 	${PROJECT_SOURCE_DIR}/common/FileWriter.cpp
 	${PROJECT_SOURCE_DIR}/common/Logger.cpp

@@ -18,12 +18,12 @@ FileReader::FileReader(char const* name)
 
 FileReader::~FileReader()
 {
-	ClearHandler();
+	DetachStandardStreams();
 }
 
 
 void
-FileReader::ClearHandler() noexcept
+FileReader::DetachStandardStreams() noexcept
 {
 	std::istream* in = m_in.get();
 	if (&std::cin == in) { m_in.release(); }

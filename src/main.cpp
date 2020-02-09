@@ -34,7 +34,7 @@ main(int argc, char** argv)
 	auto& log_mgr = LoggerManager::RefInstance();
 
 	if (not config.ParseArgs(argc, argv)) { return 1; }
-	log_mgr.SetLogfile(config.GetLogfile());
+	log_mgr.SetLogfile(config.GetLogfile().c_str());
 	WorkerManager wrk_mgr(config);
 
 	std::size_t log_batch_size = config.GetBatchSizeOfLogMessages();

@@ -12,7 +12,7 @@
 LoggerManager::LoggerManager()
 	: m_out("stdout", FileWriter::file_type_e::TEXT)
 {
-	m_out.SetBufferSize(0);
+	m_out.SetBufferSize(nullptr, 0);
 }
 
 
@@ -41,10 +41,10 @@ LoggerManager::PrintMessage(std::string_view msg)
 
 
 void
-LoggerManager::NewLogfile(std::string_view filename)
+LoggerManager::NewLogfile(char const* filename)
 {
 	m_out.Reset(filename, FileWriter::file_type_e::TEXT);
-	m_out.SetBufferSize(0);
+	m_out.SetBufferSize(nullptr, 0);
 
 	constexpr std::size_t DATE_TIME_BUF_SIZE = 32;
 	std::array<char, DATE_TIME_BUF_SIZE> dt_buffer;
@@ -67,9 +67,9 @@ LoggerManager::NewLogfile(std::string_view filename)
 
 
 void
-LoggerManager::SetLogfile(std::string_view filename)
+LoggerManager::SetLogfile(char const* filename)
 {
-	if (filename != m_out.GetName())
+	if (std::string_view{filename} != m_out.GetName())
 	{
 		NewLogfile(filename);
 	}

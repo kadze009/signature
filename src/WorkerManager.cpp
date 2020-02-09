@@ -11,7 +11,7 @@
 
 WorkerManager::WorkerManager(Config& config)
 	: m_cfg(config)
-	, m_out(m_cfg.GetOutputFile(), FileWriter::file_type_e::TEXT)
+	, m_out(m_cfg.GetOutputFile().c_str(), FileWriter::file_type_e::TEXT)
 {
 	std::uint64_t const block_size = m_cfg.GetBlockSizeKB() * 1024;
 	std::uint64_t blocks_count = m_cfg.GetInputFileSize() / block_size;

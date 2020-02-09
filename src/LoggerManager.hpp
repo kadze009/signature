@@ -33,8 +33,8 @@ public:
 
 	void AddMessage(LoggerMessage const&);
 
-	void NewLogfile(std::string_view filename);
-	void SetLogfile(std::string_view filename);
+	void NewLogfile(char const* filename);
+	void SetLogfile(char const* filename);
 	std::string_view GetLogfile() const    { return m_out.GetName(); }
 
 	void SetSyncMode(bool need_sync)       { m_needSync = need_sync; }

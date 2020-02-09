@@ -25,8 +25,10 @@ public:
 	std::size_t Read(uint8_t* buf_data, std::size_t buf_size);
 	void SkipNextBytes(std::uintmax_t offset);
 
+	char const* GetName() const noexcept { return m_name; }
+
 private:
-	void ClearHandler() noexcept;
+	void DetachStandardStreams() noexcept;
 
 	char const*                      m_name;
 	std::unique_ptr<std::istream>    m_in;
