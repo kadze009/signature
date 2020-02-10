@@ -16,6 +16,12 @@ LoggerManager::LoggerManager()
 }
 
 
+LoggerManager::~LoggerManager()
+{
+	//HandleUnprocessed(); //TODO: fix me
+}
+
+
 void
 LoggerManager::AddMessage(LoggerMessage const& msg)
 {

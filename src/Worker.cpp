@@ -24,12 +24,22 @@ Worker::Worker(WorkerManager& mgr, std::uint64_t block_num)
 
 
 
-void
-Worker::RunAsync()
+bool
+Worker::RunAsync() noexcept
 {
 	LOG_D("%s: start async running", __FUNCTION__);
 	m_isRunning = true;
-	m_future = std::async(std::launch::async, &Worker::Run, this);
+	try
+	{
+		m_future = std::async(std::launch::async, &Worker::Run, this);
+	}
+	catch (std::system_error const& ex)
+	{
+		LOG_E("%s: cought exception: %s (error code=%s)",
+		      __FUNCTION__, ex.what(), ex.code().message().c_str());
+		return false;
+	}
+	return true;
 }
 
 

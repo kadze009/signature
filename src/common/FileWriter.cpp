@@ -35,9 +35,11 @@ FileWriter::DetachStandardStreams() noexcept
 void
 FileWriter::Reset(char const* name, file_type_e type /* = file_type_e::BINARY */)
 {
-	constexpr std::string_view STANDARD_COUT_NAME {"cout"};
-	constexpr std::string_view STANDARD_CERR_NAME {"cerr"};
-	constexpr std::string_view STANDARD_CLOG_NAME {"clog"};
+	constexpr std::string_view STANDARD_COUT_NAME   {"cout"};
+	constexpr std::string_view STANDARD_STDOUT_NAME {"stdout"};
+	constexpr std::string_view STANDARD_CERR_NAME   {"cerr"};
+	constexpr std::string_view STANDARD_STDERR_NAME {"stderr"};
+	constexpr std::string_view STANDARD_CLOG_NAME   {"clog"};
 
 	auto mode = std::ios::out;
 	switch (type)
@@ -49,11 +51,13 @@ FileWriter::Reset(char const* name, file_type_e type /* = file_type_e::BINARY */
 	DetachStandardStreams();
 	m_name = (name != nullptr) ? name : DEFAULT_NAME.data();
 
-	if      (STANDARD_CERR_NAME == m_name)
+	if      (   STANDARD_CERR_NAME   == m_name
+	         or STANDARD_STDERR_NAME == m_name)
 	{
 		m_out.reset(&std::cerr);
 	}
-	else if (STANDARD_COUT_NAME == m_name)
+	else if (   STANDARD_COUT_NAME   == m_name
+	         or STANDARD_STDOUT_NAME == m_name)
 	{
 		m_out.reset(&std::cout);
 	}

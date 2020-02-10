@@ -17,21 +17,22 @@ public:
 	WorkerManager& operator=(WorkerManager const&) = delete;
 
 	WorkerManager(Config&);
-	~WorkerManager() = default;
+	~WorkerManager();
 
-	void Start() noexcept;
+	bool Start() noexcept;
 	void DoWork() noexcept;
 	bool WasFinished() const noexcept              { return m_wasFinished; }
 	bool IsAborting() const noexcept               { return m_isAborting; }
 	void StartAborting() noexcept;
-	Config const& GetConfig() const                { return m_cfg; }
+	Config const& GetConfig() const noexcept       { return m_cfg; }
 
 private:
 	// IThreadProcessor
 	void HandleItem(WorkerResult const&) override;
 
-	Worker* FindFailedWorker();
-	bool AreAllWorkersStop() const;
+	Worker* FindFailedWorker() noexcept;
+	bool AreAllWorkersStop() const noexcept;
+	void StopAllWorkers() noexcept;
 
 	Config&               m_cfg;
 	FileWriter            m_out;

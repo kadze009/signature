@@ -17,7 +17,6 @@ public:
 	StringFormer& operator=(StringFormer const&) = delete;
 	~StringFormer()                              = default;
 
-	//TODO: check if (size == 0 or buffer == nullptr)
 	StringFormer(char* buffer, std::size_t size)
 		: m_start(buffer)
 		, m_end(buffer + size)

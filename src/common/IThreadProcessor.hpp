@@ -72,6 +72,7 @@ public:
 		HandleItem(*m_head_node);
 		m_head_node->EndOfHandle();
 		m_head_node = nullptr;
+		m_last_node = nullptr;
 	}
 
 private:

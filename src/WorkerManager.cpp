@@ -42,14 +42,31 @@ WorkerManager::WorkerManager(Config& config)
 
 
 
-void
+WorkerManager::~WorkerManager()
+{
+	StopAllWorkers();
+}
+
+
+
+bool
 WorkerManager::Start() noexcept
 {
 	m_wasFinished = false;
 
 	LOG_I("%s: start %zu Workers", __FUNCTION__, m_workers.size());
-	for (Worker& w : m_workers) { w.RunAsync(); }
+	for (Worker& w : m_workers)
+	{
+		if (not w.RunAsync())
+		{
+			LOG_E("%s: worker (block=%zu) didn't start. Start aborting...",
+			      __FUNCTION__, w.GetBlockNum());
+			StopAllWorkers();
+			return false;
+		}
+	}
 	LOG_D("%s: all Workers were started", __FUNCTION__);
+	return true;
 }
 
 
@@ -108,7 +125,7 @@ void
 WorkerManager::StartAborting() noexcept
 {
 	m_isAborting = true;
-	LOG_W("%s: start aborting", __FUNCTION__);
+	LOG_D("%s: start aborting", __FUNCTION__);
 	for (Worker& w : m_workers)
 	{
 		if (w.IsRunning()) { w.SetStop(); }
@@ -118,7 +135,7 @@ WorkerManager::StartAborting() noexcept
 
 
 bool
-WorkerManager::AreAllWorkersStop() const
+WorkerManager::AreAllWorkersStop() const noexcept
 {
 	auto it = std::find_if(m_workers.begin(), m_workers.end(),
 		[](Worker const& w) { return w.IsRunning(); });
@@ -128,10 +145,26 @@ WorkerManager::AreAllWorkersStop() const
 
 
 Worker*
-WorkerManager::FindFailedWorker()
+WorkerManager::FindFailedWorker() noexcept
 {
 	auto it = std::find_if(m_workers.begin(), m_workers.end(),
 		[](Worker const& w) { return not w.IsRunning() and w.HasError(); });
 	return it != m_workers.end() ? &*it : nullptr;
+}
+
+
+void
+WorkerManager::StopAllWorkers() noexcept
+{
+	constexpr std::chrono::milliseconds POLLING_DELAY {50};
+	LOG_D("%s: starts", __FUNCTION__);
+	StartAborting();
+	do
+	{
+		m_wasFinished = AreAllWorkersStop();
+		std::this_thread::sleep_for(POLLING_DELAY);
+	}
+	while (not m_wasFinished);
+	LOG_D("%s: finishs", __FUNCTION__);
 }
 

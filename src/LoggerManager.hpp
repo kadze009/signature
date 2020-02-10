@@ -24,12 +24,18 @@
 //      then it's the error of developer and can `throw 666;`
 //      (uncathchable exception)
 //
+//    * (AZ) LoggerManager should take the pools of messages for Loggers like a
+//      shared pointer objects and should wait while pools have not state 'FREE'
+//      or a number of a pool owners is not ONE. It's need for `HandleUnprocessed`
+//      calling. **WARNING**: possible freezing because LoggerManager starts
+//      destroing but no one starts threads stoping.
+//
 class LoggerManager : public Singletone<LoggerManager>,
                       public IThreadProcessor<LoggerMessage>
 {
 public:
 	LoggerManager();
-	~LoggerManager() = default;
+	~LoggerManager();
 
 	void AddMessage(LoggerMessage const&);
 

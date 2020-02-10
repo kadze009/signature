@@ -1,4 +1,6 @@
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 #include "Config.hpp"
 #include "LoggerManager.hpp"
@@ -28,6 +30,7 @@ void pool_stats(char const* name)
 int
 main(int argc, char** argv)
 {
+	constexpr std::chrono::milliseconds POLLING_DELAY {100};
 	std::ios::sync_with_stdio(false);
 
 	auto& config  = Config::RefInstance();
@@ -39,11 +42,13 @@ main(int argc, char** argv)
 
 	std::size_t log_batch_size = config.GetBatchSizeOfLogMessages();
 	log_mgr.SetSyncMode(false);
-	wrk_mgr.Start();
+	if (not wrk_mgr.Start()) { return 2; }
+
 	do
 	{
 		log_mgr.HandleBatchOfItems(log_batch_size);
 		wrk_mgr.DoWork();
+		std::this_thread::sleep_for(POLLING_DELAY);
 	}
 	while (not wrk_mgr.WasFinished());
 	wrk_mgr.HandleUnprocessed();

@@ -59,12 +59,12 @@ public:
 	Worker& operator= (Worker&&) = default;
 	~Worker()                    = default;
 
-	std::uint64_t GetBlockNum() const    { return m_blockNum; }
-	hasher_t const& GetHasher() const    { return m_hasher; }
-	bool IsNeedStop() const              { return m_isNeedStop; }
-	void SetStop()                       { m_isNeedStop = true; }
+	std::uint64_t GetBlockNum() const noexcept { return m_blockNum; }
+	hasher_t const& GetHasher() const noexcept { return m_hasher; }
+	bool IsNeedStop() const noexcept           { return m_isNeedStop; }
+	void SetStop() noexcept                    { m_isNeedStop = true; }
 
-	void RunAsync();
+	bool RunAsync() noexcept;
 	bool IsRunning() const noexcept      { return m_isRunning; }
 	bool HasError() const noexcept       { return static_cast<bool>(m_exceptPtr); }
 	void ThrowError() const;
