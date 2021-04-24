@@ -17,11 +17,13 @@ public:
 	StringFormer& operator=(StringFormer const&) = delete;
 	~StringFormer()                              = default;
 
-	StringFormer(char* buffer, std::size_t size)
+	StringFormer(char* buffer, size_t size)
 		: m_start(buffer)
 		, m_end(buffer + size)
 		, m_free(buffer)
-	{}
+	{
+		if (0 != size) { buffer[0] = '\0'; }
+	}
 
 	StringFormer& operator() (char const* format, ...)
 	{
@@ -51,20 +53,20 @@ public:
 		return res - (is_full() ? 1 : 0);
 	}
 
-	std::string_view sv() const    { return {m_start, size()}; }
-	char const* c_str() const      { return m_start; }
+	std::string_view sv() const noexcept { return {m_start, size()}; }
+	char const* c_str() const noexcept   { return m_start; }
 
-	std::size_t size() const       { return m_free - m_start - (is_full() ? 1 : 0); }
-	std::size_t capacity() const   { return m_end - m_start; }
-	int free_size() const          { return m_end - m_free; }
-	bool is_full() const           { return m_free == m_end; }
-	bool empty() const             { return m_free == m_start; }
+	size_t size() const noexcept         { return m_free - m_start - (is_full() ? 1 : 0); }
+	size_t capacity() const noexcept     { return m_end - m_start; }
+	int free_size() const noexcept       { return m_end - m_free; }
+	bool is_full() const noexcept        { return m_free == m_end; }
+	bool empty() const noexcept          { return m_free == m_start; }
 
-	void reset()                   { m_free = m_start; }
+	void reset() noexcept                { m_free = m_start; }
 
 private:
-	char* m_start;
-	char* m_end;
-	char* m_free;
+	char*       m_start;
+	char* const m_end;
+	char*       m_free;
 };
 

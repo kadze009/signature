@@ -18,67 +18,72 @@ class Config : public Singletone<Config>
 {
 public:
 	using start_clock_t = std::chrono::system_clock;
+	using start_tp_t    = decltype(start_clock_t::now());
 	using clock_t       = std::chrono::steady_clock;
+	using clock_tp_t    = decltype(clock_t::now());
 	using log_lvl_e     = Logger::log_level_e;
 	using init_algo_t   = std::unique_ptr<algo::InitHashStrategy>;
 
-	static constexpr std::size_t DEFAULT_THREAD_NUM =
-			std::numeric_limits<std::size_t>::max();
-	static constexpr std::uintmax_t DEFAULT_BLOCK_SIZE_KB = 1024;
-	static constexpr std::size_t DEFAULT_LOG_MSG_BATCH_SIZE = 100;
-	static constexpr std::string_view DEFAULT_LOGFILE  = "stdout";
-	static constexpr std::size_t DEFAULT_READ_BUF_SIZE = 4096;
-	static constexpr uint8_t DEFAULT_BLOCK_FILLER_BYTE = 0;
-
-	Config();
+	struct Default_s
+	{
+		//NOTE: AMAP = As Much As Possible
+		static constexpr size_t      AMAP_THREAD_NUM    = std::numeric_limits<std::size_t>::max();
+		static constexpr uintmax_t   BLOCK_SIZE_KB      = 1024;
+		static constexpr size_t      LOG_MSG_BATCH_SIZE = 100;
+		static constexpr char const* LOGFILE            = "stdout";
+		static constexpr size_t      READ_BUF_SIZE      = 4096;
+		static constexpr uint8_t     BLOCK_FILLER_BYTE  = 0;
+	};
 
 	struct BuildVersion_s
 	{
-		std::uint32_t major;
-		std::uint32_t minor;
-		std::uint32_t patch;
+		uint32_t major;
+		uint32_t minor;
+		uint32_t patch;
 	};
 
-	static
-	BuildVersion_s const& GetBuildVersion() { return m_buildVersion; }
+public:
+	static BuildVersion_s const& GetBuildVersion() noexcept { return m_buildVersion; }
+	static void PrintUsage() noexcept;
+	static void PrintHelp() noexcept;
+	static void PrintVersion() noexcept;
 
-	void PrintUsage() const;
-	void PrintHelp() const;
-	void PrintVersion() const;
 
-	bool ParseArgs(int, char**);
-	char const* toString() const;
+	Config();
 
-	auto GetDurationSinceStart() const      { return clock_t::now() - m_startMoment; }
-	auto const GetStartDateTime() const     { return m_startDateTime; }
+	bool ParseArgs(int, char**) noexcept;
+	char const* toString() const noexcept;
 
-	init_algo_t const& GetInitAlgo() const  { return m_initAlgo; }
-	log_lvl_e GetActualLogLevel() const     { return m_actLogLvl; }
-	std::string const& GetLogfile() const   { return m_logfile; }
-	std::string const& GetInputFile() const { return m_inputFile; }
-	std::string const& GetOutputFile() const{ return m_outputFile; }
-	std::uintmax_t GetBlockSizeKB() const   { return m_blockSizeKB; }
-	std::uintmax_t GetInputFileSize() const { return m_inputFileSize; }
-	std::size_t GetBatchSizeOfLogMessages() const { return m_logMsgBatchSize; }
-	std::size_t GetThreadsNum() const       { return m_numThreads; }
-	std::size_t GetReadBufferSize() const   { return m_readBufSize; }
-	uint8_t GetBlockFiller() const          { return m_blockFiller; }
+	auto GetDurationSinceStart() const noexcept        { return clock_t::now() - m_startMoment; }
+	start_tp_t const GetStartDateTime() const noexcept { return m_startDateTime; }
+
+	init_algo_t const& GetInitAlgo() const noexcept    { return m_initAlgo; }
+	log_lvl_e GetActualLogLevel() const noexcept       { return m_actLogLvl; }
+	std::string const& GetLogfile() const noexcept     { return m_logfile; }
+	std::string const& GetInputFile() const noexcept   { return m_inputFile; }
+	std::string const& GetOutputFile() const noexcept  { return m_outputFile; }
+	uintmax_t GetBlockSizeKB() const noexcept          { return m_blockSizeKB; }
+	uintmax_t GetInputFileSize() const noexcept        { return m_inputFileSize; }
+	size_t GetBatchSizeOfLogMessages() const noexcept  { return m_logMsgBatchSize; }
+	size_t GetThreadsNum() const noexcept              { return m_numThreads; }
+	size_t GetReadBufferSize() const noexcept          { return m_readBufSize; }
+	uint8_t GetBlockFiller() const noexcept            { return m_blockFiller; }
 
 	// NOTE: uint64_t for determinating byte size of block number which will
 	//       be recorded
-	void SetLastBlockNum(std::uint64_t v)   { m_lastBlockNum = v; }
-	std::uint64_t GetLastBlockNum() const   { return m_lastBlockNum; }
+	void SetLastBlockNum(std::uint64_t v) noexcept     { m_lastBlockNum = v; }
+	std::uint64_t GetLastBlockNum() const noexcept     { return m_lastBlockNum; }
 
-	void SetBlocksShift(std::uint64_t v)    { m_blocksShift = v; }
-	std::uint64_t GetBlocksShift() const    { return m_blocksShift; }
+	void SetBlocksShift(std::uint64_t v) noexcept      { m_blocksShift = v; }
+	std::uint64_t GetBlocksShift() const noexcept      { return m_blocksShift; }
 
-	void SetFileBytesShift(std::uintmax_t v) { m_fileBytesShift = v; }
-	std::uintmax_t GetFileBytesShift() const { return m_fileBytesShift; }
+	void SetFileBytesShift(std::uintmax_t v) noexcept  { m_fileBytesShift = v; }
+	std::uintmax_t GetFileBytesShift() const noexcept  { return m_fileBytesShift; }
 
 private:
-	void ParseVerbose(std::string_view);
-	void ParseBlockSize(std::string_view);
-	void ParseOption(std::string_view);
+	void ParseVerbose(char const*);
+	void ParseBlockSize(char const*);
+	void ParseOption(char const*);
 
 	void FinalCheck_InputOutputFiles();
 	void FinalCheck_BlockSize();
@@ -86,25 +91,25 @@ private:
 	void FinalCheck_Algo();
 	void FinalCheck_LogSettings();
 
+private:
+	static BuildVersion_s const m_buildVersion;
 
-	decltype(start_clock_t::now()) const m_startDateTime;
-	decltype(clock_t::now()) const       m_startMoment;
 
-	log_lvl_e      m_actLogLvl       = log_lvl_e::WARNING;
-	std::uintmax_t m_blockSizeKB     = DEFAULT_BLOCK_SIZE_KB;
-	std::size_t    m_logMsgBatchSize = DEFAULT_LOG_MSG_BATCH_SIZE;
-	std::size_t    m_numThreads      = DEFAULT_THREAD_NUM; // As many as possible
-	std::string    m_logfile         { DEFAULT_LOGFILE };
+	start_tp_t const m_startDateTime;
+	clock_tp_t const m_startMoment;
+
+	uintmax_t      m_blockSizeKB     = Default_s::BLOCK_SIZE_KB;
+	size_t         m_logMsgBatchSize = Default_s::LOG_MSG_BATCH_SIZE;
+	size_t         m_numThreads      = Default_s::AMAP_THREAD_NUM; // AMAP = As Much As Possible
+	std::string    m_logfile         { Default_s::LOGFILE };
 	std::string    m_outputFile;
 	std::string    m_inputFile;
-	std::uintmax_t m_inputFileSize   = 0;
+	uintmax_t      m_inputFileSize   = 0;
 	init_algo_t    m_initAlgo;
-	std::uint64_t  m_blocksShift     = 0; // will be set by WorkerManager
-	std::uint64_t  m_lastBlockNum    = 0; // will be set by WorkerManager
-	std::uintmax_t m_fileBytesShift  = 0; // will be set by WorkerManager
-	std::size_t    m_readBufSize     = DEFAULT_READ_BUF_SIZE;     //TODO: add for configuring
-	uint8_t        m_blockFiller     = DEFAULT_BLOCK_FILLER_BYTE; //TODO: add for configuring
-
-	static BuildVersion_s const m_buildVersion;
+	uint64_t       m_blocksShift     = 0; // will be set by WorkerManager
+	uint64_t       m_lastBlockNum    = 0; // will be set by WorkerManager
+	uintmax_t      m_fileBytesShift  = 0; // will be set by WorkerManager
+	size_t         m_readBufSize     = Default_s::READ_BUF_SIZE;     //TODO: add for configuring
+	uint8_t        m_blockFiller     = Default_s::BLOCK_FILLER_BYTE; //TODO: add for configuring
+	log_lvl_e      m_actLogLvl       = log_lvl_e::WARNING;
 };
-

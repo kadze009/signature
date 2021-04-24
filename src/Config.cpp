@@ -17,6 +17,7 @@
 
 
 
+// static member
 Config::BuildVersion_s const Config::m_buildVersion
 {
 	  .major = BUILD_VERSION_MAJOR
@@ -25,16 +26,9 @@ Config::BuildVersion_s const Config::m_buildVersion
 };
 
 
-Config::Config()
-	: m_startDateTime(start_clock_t::now())
-	, m_startMoment(clock_t::now())
-{
-	m_initAlgo.reset(new algo::InitMd5HashStrategy);
-}
-
-
+// static
 void
-Config::PrintUsage() const
+Config::PrintUsage() noexcept
 {
 	fprintf(stderr,
 "Usage:\n"
@@ -42,8 +36,9 @@ Config::PrintUsage() const
 }
 
 
+// static
 void
-Config::PrintHelp() const
+Config::PrintHelp() noexcept
 {
 	PrintUsage();
 	fprintf(stderr,
@@ -52,7 +47,7 @@ Config::PrintHelp() const
 
 R"(KEYS
     -h, --help
-        this message
+        Show this message
 
     --version
         Print version
@@ -61,21 +56,20 @@ R"(KEYS
         Print information verbosly. Possible values: DBG, INF, WRN, ERR.
 
     -b, --block-size BLOCK_SIZE (default: 1M)
-        the size of block on which input file is split. The value supports
-        suffixes: K=Kilobyte, M=Megabyte, G=Gigabyte. A number without suffix
-        is KiloBytes.
+        The length of the block by which an input file will be splited. Supported
+        suffixes: K=KiloByte, M=MegaByte, G=GigaByte. A number without suffix
+        is interpreted as KiloBytes.
 
     -o, --option OPTION
-        set special option:
+        Set special option:
         * sign_algo=[crc32,md5] (default: md5)
-            signature algorithm
+            the signature algorithm
         * threads=NUM (default: as many threads as available)
-            integer number of threads for processing
-            (at least 2: one -- manager, others -- workers)
+            the integer number of threads for processing (must be more then 0)
         * log_file=<file path> (default: stdout)
             the log file path
         * log_batch_size=<number> (default: 100)
-            the integer number of log messages for writing in async mode during
+            the quantity of log messages for writing in async mode during
             multithread execution
 
 )"
@@ -87,14 +81,16 @@ R"(KEYS
 }
 
 
+// static
 void
-Config::PrintVersion() const
+Config::PrintVersion() noexcept
 {
+	BuildVersion_s const& build_version = GetBuildVersion();
 	fprintf(stderr,
 	        APP_NAME ": version %d.%d (patch %06d)\n",
-	        GetBuildVersion().major,
-	        GetBuildVersion().minor,
-	        GetBuildVersion().patch
+	        build_version.major,
+	        build_version.minor,
+	        build_version.patch
 	       );
 }
 
@@ -137,7 +133,7 @@ std::array<KeyArg, 6> const g_OptArgs =
 }};
 
 
-bool
+inline bool
 IsKeyArg(std::string_view key)
 {
 	return key.size() > 1 && key[0] == '-';
@@ -149,12 +145,12 @@ FindKeyArg(std::string_view arg_str)
 {
 	if (not IsKeyArg(arg_str)) { return nullptr; }
 
-	KeyArg const* res = &g_OptArgs[0];
+	KeyArg const* res = g_OptArgs.data();
 	if (arg_str[1] == '-')
 	{
 		// detect long key, look up it
-		auto act_name = arg_str.substr(2);
-		for (auto const& preset_key : g_OptArgs)
+		std::string_view act_name = arg_str.substr(2);
+		for (KeyArg const& preset_key : g_OptArgs)
 		{
 			if (preset_key.key_type == key_type_e::UNKNOWN)
 			{
@@ -167,18 +163,17 @@ FindKeyArg(std::string_view arg_str)
 			}
 		}
 	}
-	else
+	else if (arg_str.size() == 2)
 	{
 		// detect short key, look up it
-		for (auto const& preset_key : g_OptArgs)
+		for (KeyArg const& preset_key : g_OptArgs)
 		{
 			if (preset_key.key_type == key_type_e::UNKNOWN)
 			{
 				continue;
 			}
 			else if (   preset_key.short_name != KeyArg::NO_SHORT
-			         && preset_key.short_name == arg_str[1]
-					 && arg_str.size() == 2)
+			         && preset_key.short_name == arg_str[1])
 			{
 				res = &preset_key;
 				break;
@@ -192,9 +187,8 @@ FindKeyArg(std::string_view arg_str)
 void
 THROW_INVALID_ARGUMENT(char const* fmt, ...)
 {
-	constexpr std::size_t ERROR_BUFFER_SIZE = 512;
-	std::array<char, ERROR_BUFFER_SIZE> err_buf;
-	err_buf.fill('\0');
+	constexpr size_t ERROR_BUFFER_SIZE = 512;
+	static std::array<char, ERROR_BUFFER_SIZE> err_buf;
 	StringFormer err_fmt {err_buf.data(), err_buf.size()};
 
 	va_list args;
@@ -207,13 +201,22 @@ THROW_INVALID_ARGUMENT(char const* fmt, ...)
 } // namespace
 
 
+Config::Config()
+	: m_startDateTime(start_clock_t::now())
+	, m_startMoment(clock_t::now())
+	, m_initAlgo(new algo::InitMd5HashStrategy)
+{}
+
 
 bool
-Config::ParseArgs(int argc, char** argv)
+Config::ParseArgs(int argc, char** argv) noexcept
 {
 	int i_arg = 1;
 	try
 	{
+		//NOTE: responsibility of this loop is ONLY save input arguments to
+		// the corresponding fields. The validation process of these fields is
+		// located in FinaleCheck_* methods.
 		for (; i_arg < argc; ++i_arg)
 		{
 			char const* cur_arg = argv[i_arg];
@@ -222,18 +225,17 @@ Config::ParseArgs(int argc, char** argv)
 			// Process with non key like arguments
 			if (not key_arg)
 			{
-				// detect not a key. Possible it is a name of input/output file
-				if      (m_inputFile.empty())
+				// It isn't a key. Treat it as either input or output filename.
+				if (m_inputFile.empty())
 				{
 					using std::filesystem::file_size;
 					m_inputFile.assign(cur_arg);
-
 					std::error_code ec;
 					m_inputFileSize = file_size(m_inputFile, ec);
 					if (ec)
 					{
-						THROW_INVALID_ARGUMENT("can not get size of input file "
-							"[%s]: %s",
+						THROW_INVALID_ARGUMENT(
+							"can't get the size of the input file [%s]: %s",
 							m_inputFile.c_str(), ec.message().c_str());
 					}
 				}
@@ -254,23 +256,17 @@ Config::ParseArgs(int argc, char** argv)
 			char const* key_value = nullptr;
 			if (key_arg->with_param)
 			{
-				char const* error = nullptr;
-				do
+				char const* const error = [&]() -> char const*
 				{
-					if (i_arg + 1 == argc)
-					{
-						error = "unexpected end of arguments` list";
-						break;
-					}
+					if (i_arg + 1 == argc) { return "unexpected end of arguments` list"; }
 					key_value = argv[++i_arg];
 					if (IsKeyArg(key_value))
 					{
 						--i_arg;
-						error = "unxexpected detection of key argument";
-						break;
+						return "unxexpected detection of key argument";
 					}
-				}
-				while (false);
+					return nullptr;
+				}();
 				if (error)
 				{
 					THROW_INVALID_ARGUMENT(
@@ -306,7 +302,7 @@ Config::ParseArgs(int argc, char** argv)
 			case key_type_e::BLOCK_SIZE: ParseBlockSize(key_value); break;
 			case key_type_e::OPTION:     ParseOption(key_value); break;
 			}
-		}
+		} // for (; i_arg < argc; ++i_arg)
 
 		FinalCheck_InputOutputFiles();
 		FinalCheck_BlockSize();
@@ -323,17 +319,18 @@ Config::ParseArgs(int argc, char** argv)
 	}
 	catch (std::exception const& ex)
 	{
+		//NOTE: no need to print exception's `what` because it will be printed
 		PrintHelp();
 		return false;
 	}
-
 	return true;
 }
 
 
 void
-Config::ParseVerbose(std::string_view value)
+Config::ParseVerbose(char const* key_v)
 {
+	std::string_view value {key_v};
 	if      (value == "DBG" or value == "DEBUG")
 	{
 		m_actLogLvl = log_lvl_e::DEBUG;
@@ -352,34 +349,34 @@ Config::ParseVerbose(std::string_view value)
 	}
 	else
 	{
-		THROW_INVALID_ARGUMENT("unknown verbose level [%s]", value.data());
+		THROW_INVALID_ARGUMENT("unknown verbose level [%s]", key_v);
 	}
 }
 
 
 void
-Config::ParseBlockSize(std::string_view value)
+Config::ParseBlockSize(char const* key_v)
 {
-	char const* begin = value.data();
-	char const* end   = value.data() + value.size();
-	auto res = std::from_chars(begin, end, m_blockSizeKB);
+	std::string_view value {key_v};
+	char const* const value_end = value.end();
+	auto res = std::from_chars(value.begin(), value_end, m_blockSizeKB);
 	if (res.ec != std::errc())
 	{
-		THROW_INVALID_ARGUMENT("can not parse block size [%s]: %s",
-			value.data(), std::make_error_code(res.ec).message().c_str());
+		THROW_INVALID_ARGUMENT(
+			"can't parse block size [%s]: %s",
+			key_v, std::make_error_code(res.ec).message().c_str());
 	}
-
-	if (res.ptr != end)
+	if (res.ptr != value_end)
 	{
-		if (res.ptr + 1 != end)
+		if (res.ptr + 1 != value_end)
 		{
 			THROW_INVALID_ARGUMENT(
-				"too long suffix [%s] of block size's number [%zu]. "
-				"Available only K, M and G.",
+				"too long suffix [%s] of block size [%zu]. Available suffixes: "
+				"K, M, G.",
 				res.ptr, m_blockSizeKB);
 		}
-
-		switch (res.ptr[0])
+		char const suffix = res.ptr[0];
+		switch (suffix)
 		{
 		case 'k':
 		case 'K': break;
@@ -389,83 +386,80 @@ Config::ParseBlockSize(std::string_view value)
 		case 'G': m_blockSizeKB *= 1024*1024; break;
 		default:
 			THROW_INVALID_ARGUMENT(
-				"unknown number modificator [%c] for found block size [%zu]. "
-				"Available only K, M and G.",
-				res.ptr[0], m_blockSizeKB);
+				"an unknown modificator [%c] for the block size [%zu]. "
+				"Available suffixes: K, M, G.",
+				suffix, m_blockSizeKB);
 		}
 	}
+	// else: the block size w/o suffix => suffix=K
 }
 
 
 void
-Config::ParseOption(std::string_view value)
+Config::ParseOption(char const* key_v)
 {
-	constexpr char delimeter = '=';
-	auto delim_pos = value.find_first_of(delimeter);
+	std::string_view value {key_v};
+	constexpr char DELIMETER = '=';
+	size_t delim_pos = value.find(DELIMETER);
 	if (delim_pos == std::string_view::npos)
 	{
-		THROW_INVALID_ARGUMENT("detect invalid format for option [%s]", value.data());
+		THROW_INVALID_ARGUMENT("detect invalid format for the option [%s]", key_v);
 	}
-	auto opt_k = value.substr(0, delim_pos);
-	auto opt_v = value.substr(delim_pos+1, value.size() - delim_pos - 1);
+	std::string_view opt_k = value.substr(0, delim_pos);
+	std::string_view opt_v = value.substr(delim_pos + 1, value.size() - delim_pos - 1);
 	if (opt_v.empty())
 	{
-		THROW_INVALID_ARGUMENT("empty value for option [%.*s]",
-			(int)opt_k.size(), opt_k.data());
+		THROW_INVALID_ARGUMENT("empty value for the option [%.*s]", LOG_SV(opt_k));
 	}
 
-	if      (opt_k == "sign_algo")
+	if (opt_k == "sign_algo")
 	{
 		if      (opt_v == "md5")
 		{
-			m_initAlgo.reset(new algo::InitMd5HashStrategy);
+			m_initAlgo = std::make_unique<algo::InitMd5HashStrategy>();
 		}
 		else if (opt_v == "crc32")
 		{
-			m_initAlgo.reset(new algo::InitCrc32HashStrategy);
+			m_initAlgo = std::make_unique<algo::InitCrc32HashStrategy>();
 		}
 		else
 		{
-			THROW_INVALID_ARGUMENT("unknown signature algorithm [%.*s]",
-				(int)opt_v.size(), opt_v.data());
+			THROW_INVALID_ARGUMENT("unknown signature algorithm [%.*s]", LOG_SV(opt_v));
 		}
 	}
 
 	else if (opt_k == "threads")
 	{
-		auto res = std::from_chars(opt_v.data(), opt_v.data() + opt_v.size(),
-		                           m_numThreads);
+		auto res = std::from_chars(opt_v.begin(), opt_v.end(), m_numThreads);
 		if (res.ec != std::errc())
 		{
-			THROW_INVALID_ARGUMENT("can not parse threads number [%.*s]: %s",
-				(int)opt_v.size(), opt_v.data(),
-				std::make_error_code(res.ec).message().c_str());
+			THROW_INVALID_ARGUMENT(
+				"can't parse the threads number [%.*s]: %s",
+				LOG_SV(opt_v), std::make_error_code(res.ec).message().c_str());
 		}
 	}
 
 	else if (opt_k == "log_file")
 	{
-		// WorkerManager changes the mode and the logfile of LoggerManager
+		//NOTE: WorkerManager changes the mode and the logfile of LoggerManager
 		// on start.
 		m_logfile.assign(opt_v);
 	}
 
 	else if (opt_k == "log_batch_size")
 	{
-		auto res = std::from_chars(opt_v.data(), opt_v.data() + opt_v.size(),
-		                           m_logMsgBatchSize);
+		auto res = std::from_chars(opt_v.begin(), opt_v.end(), m_logMsgBatchSize);
 		if (res.ec != std::errc())
 		{
-			THROW_INVALID_ARGUMENT("can not parse log messages batch size [%.*s]: %s",
-				(int)opt_v.size(), opt_v.data(),
-				std::make_error_code(res.ec).message().c_str());
+			THROW_INVALID_ARGUMENT(
+				"can't parse log messages batch size [%.*s]: %s",
+				LOG_SV(opt_v), std::make_error_code(res.ec).message().c_str());
 		}
 	}
 
 	else
 	{
-		THROW_INVALID_ARGUMENT("unknown option [%.*s]",
-			(int)opt_k.size(), opt_k.data());
+		THROW_INVALID_ARGUMENT("an unexpected option [%.*s]", LOG_SV(opt_k));
 	}
 }
 
@@ -493,6 +487,8 @@ Config::FinalCheck_InputOutputFiles()
 			"Detect the same names '%s'",
 			__FUNCTION__, m_inputFile.c_str());
 	}
+	//TODO: check possibility to read the input file
+	//TODO: check possibility to create and write the output file
 }
 
 
@@ -514,9 +510,9 @@ Config::FinalCheck_ThreadNums()
 		THROW_ERROR("%s: the number of threads MUST BE more then 0", __FUNCTION__);
 	}
 
-	std::size_t hw_cores = std::thread::hardware_concurrency();
+	size_t hw_cores = std::thread::hardware_concurrency();
 
-	if (m_numThreads == DEFAULT_THREAD_NUM)
+	if (m_numThreads == Default_s::AMAP_THREAD_NUM)
 	{
 		m_numThreads = hw_cores;
 		//if (m_numThreads > 7) { --m_numThreads; } // stay one core for OS's needes
@@ -529,12 +525,11 @@ Config::FinalCheck_ThreadNums()
 			__FUNCTION__, m_numThreads, hw_cores);
 	}
 
-	if (m_numThreads < 2)
+	if (0 == m_numThreads)
 	{
 		THROW_ERROR(
-			"%s: the invalid number of expected threads [%zu]: "
-			"expected MUST BE at least 2 threads "
-			"(one -- manager, others -- workers)",
+			"%s: the invalid number of expected threads [%zu]. At least one "
+			"MUST BE choosen.",
 			__FUNCTION__, m_numThreads);
 	}
 }
@@ -550,7 +545,7 @@ Config::FinalCheck_Algo()
 void
 Config::FinalCheck_LogSettings()
 {
-	if (m_logMsgBatchSize == 0)
+	if (0 == m_logMsgBatchSize)
 	{
 		THROW_ERROR(
 			"%s: the log messages batch size MUST be more then 0",
@@ -560,12 +555,11 @@ Config::FinalCheck_LogSettings()
 
 
 char const*
-Config::toString() const
+Config::toString() const noexcept
 {
 	constexpr std::size_t MAX_SIZE = 368;
 	static std::array<char, MAX_SIZE> buffer;
 
-	buffer.fill('\0');
 	StringFormer str(buffer.data(), buffer.size());
 	str(R"({
 	LOG FILE        = %s
@@ -590,7 +584,5 @@ Config::toString() const
 		, m_blockSizeKB
 		, m_lastBlockNum
 		);
-
-    return str.c_str();
+	return str.c_str();
 }
-

@@ -42,6 +42,8 @@
 			.c_str()); \
 	} while(false)
 
+#define LOG_SV(sv) (int)sv.size(), sv.data()
+
 
 
 class Logger : public SingletoneThreadLocal<Logger>
