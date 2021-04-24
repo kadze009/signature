@@ -20,9 +20,10 @@
 // static member
 Config::BuildVersion_s const Config::m_buildVersion
 {
-	  .major = BUILD_VERSION_MAJOR
-	, .minor = BUILD_VERSION_MINOR
-	, .patch = BUILD_VERSION_PATCH
+	//NOTE: since C++20
+	  /*.major =*/ BUILD_VERSION_MAJOR
+	, /*.minor =*/ BUILD_VERSION_MINOR
+	, /*.patch =*/ BUILD_VERSION_PATCH
 };
 
 
@@ -77,6 +78,7 @@ R"(KEYS
 "    " APP_NAME " input.dat output.dat\n"
 "    " APP_NAME " -b 32K input.dat output.dat -o threads=5\n"
 "    " APP_NAME " --block-size 32K input.dat out.dat -o sign_algo=md5 -o threads=5\n"
+"\n"
 	);
 }
 

@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <string>
 #include <atomic>
+#include <string_view>
 
 #include <cstdint>
 
@@ -17,20 +18,27 @@
 #ifdef ENABLE_DEBUG
 #include <cstdio>
 #define DEBUG(FMT, ...) fprintf(stderr,\
-	"LOG [" __FILE__ ":%d]: " FMT "\n", __LINE__, __VA_ARGS__)
+	"LOG [" __FILE__ ":%d]: " FMT "\n", __LINE__ __VA_OPT__(,) __VA_ARGS__)
 #else
 #define DEBUG(FMT, ...)
 #endif
 
 
-#define LOG_E(FMT, ...) \
-	Logger::RefInstance().LogErr(__FILE__, __LINE__, FMT, __VA_ARGS__)
-#define LOG_W(FMT, ...) \
-	Logger::RefInstance().LogWrn(__FILE__, __LINE__, FMT, __VA_ARGS__)
-#define LOG_I(FMT, ...) \
-	Logger::RefInstance().LogInf(__FILE__, __LINE__, FMT, __VA_ARGS__)
-#define LOG_D(FMT, ...) \
-	Logger::RefInstance().LogDbg(__FILE__, __LINE__, FMT, __VA_ARGS__)
+constexpr char const* short_filename(char const* fname)
+{
+	std::string_view fname_sv {fname};
+	size_t p = fname_sv.rfind('/');
+	return (p != std::string_view::npos)
+		? fname_sv.substr(p + 1).data()
+		: fname_sv.data();
+}
+
+
+#define LOG_E(FMT, ...)  Logger::RefInstance().LogErr(short_filename(__FILE__), __LINE__, FMT __VA_OPT__(,) __VA_ARGS__)
+#define LOG_W(FMT, ...)  Logger::RefInstance().LogWrn(short_filename(__FILE__), __LINE__, FMT __VA_OPT__(,) __VA_ARGS__)
+#define LOG_I(FMT, ...)  Logger::RefInstance().LogInf(short_filename(__FILE__), __LINE__, FMT __VA_OPT__(,) __VA_ARGS__)
+#define LOG_D(FMT, ...)  Logger::RefInstance().LogDbg(short_filename(__FILE__), __LINE__, FMT __VA_OPT__(,) __VA_ARGS__)
+#define LOG_SV(sv) (int)sv.size(), sv.data()
 
 #define THROW_ERROR(FMT, ...) \
 	do { \
@@ -41,8 +49,6 @@
 			StringFormer(buffer, MAX_SIZE)(FMT, __VA_ARGS__) \
 			.c_str()); \
 	} while(false)
-
-#define LOG_SV(sv) (int)sv.size(), sv.data()
 
 
 

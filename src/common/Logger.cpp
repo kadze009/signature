@@ -30,6 +30,7 @@ toString(Logger::log_level_e v)
 	using log_level_e = Logger::log_level_e;
 	switch(v)
 	{
+	//using enum Logger::log_level_e;    //NOTE: since C++20
 	case log_level_e::DEBUG:   return "DBG";
 	case log_level_e::INFO:    return "INF";
 	case log_level_e::WARNING: return "WRN";
@@ -95,16 +96,10 @@ Logger::LogMessage(
 	auto const sec  =   std::chrono::duration_cast<std::chrono::seconds>(duration);
 	auto const usec =   std::chrono::duration_cast<std::chrono::microseconds>(duration)
 	                  - std::chrono::duration_cast<std::chrono::microseconds>(sec);
-	sf.append("%s (%s) %ld.%06ld",
-	          toString(lvl),
-	          m_thread_id.c_str(),
-	          sec.count(),
-	          usec.count());
-	if (filename)
-	{
-		sf.append(" [%s:%zu]", std::filesystem::path(filename).filename().c_str(), line_n);
-	}
-	sf.append(": ");
+	sf.append("%s (%s) %ld.%06ld [%s:%zu] ",
+	          toString(lvl), m_thread_id.c_str(),
+	          sec.count(), usec.count(),
+	          filename, line_n);
 	sf.append(fmt, vlist);
 
 	LoggerManager::RefInstance().AddMessage(msg);
