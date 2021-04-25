@@ -9,6 +9,14 @@
 
 
 
+#ifdef RELEASE_BUILD
+#define BUILD_TYPE_MSG "Release"
+#else
+#define BUILD_TYPE_MSG "Debug"
+#endif
+
+
+
 LoggerManager::LoggerManager()
 	: m_out("stdout", FileWriter::file_type_e::TEXT)
 {
@@ -31,7 +39,7 @@ LoggerManager::AddMessage(LoggerMessage const& msg)
 	}
 	else
 	{
-		std::lock_guard<print_mutex_t> _lg(m_print_mutex);
+		std::lock_guard _lg(m_print_mutex);
 		HandleItem(msg);
 		msg.EndOfHandle();
 	}
@@ -47,14 +55,13 @@ LoggerManager::PrintMessage(std::string_view msg)
 
 
 void
-LoggerManager::NewLogfile(char const* filename)
+LoggerManager::NewLogfile(std::string_view filename)
 {
 	m_out.Reset(filename, FileWriter::file_type_e::TEXT);
 	m_out.SetBufferSize(nullptr, 0);
 
 	constexpr std::size_t DATE_TIME_BUF_SIZE = 32;
 	std::array<char, DATE_TIME_BUF_SIZE> dt_buffer;
-	dt_buffer.fill('\0');
 	auto start_time = Config::start_clock_t::to_time_t(
 	                      Config::RefInstance().GetStartDateTime());
 	std::strftime(dt_buffer.data(), dt_buffer.size(),
@@ -65,6 +72,7 @@ LoggerManager::NewLogfile(char const* filename)
 	auto const& version = Config::GetBuildVersion();
 	PrintMessage(StringFormer(msg.data(), msg.size())
 		("Application start: %s\n"
+		 "Build type:        " BUILD_TYPE_MSG "\n"
 		 "Build version:     %d.%d (patch %06d)\n\n",
 		 dt_buffer.data(),
 		 version.major, version.minor, version.patch)
@@ -73,9 +81,9 @@ LoggerManager::NewLogfile(char const* filename)
 
 
 void
-LoggerManager::SetLogfile(char const* filename)
+LoggerManager::SetLogfile(std::string_view filename)
 {
-	if (std::string_view{filename} != m_out.GetName())
+	if (filename != m_out.GetName())
 	{
 		NewLogfile(filename);
 	}

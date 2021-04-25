@@ -8,6 +8,7 @@
 
 
 
+// See common/Logger.hpp
 #ifdef ENABLE_DEBUG
 #include "PoolManager.hpp"
 template<typename T>
@@ -23,6 +24,9 @@ void pool_stats(char const* name)
 	}
 	DEBUG("===( count = %zu )===", pool_counter);
 }
+#define POOL_STATS(type) pool_stats<type>(#type)
+#else
+#define POOL_STATS(type) (void)0
 #endif
 
 
@@ -37,7 +41,7 @@ main(int argc, char** argv)
 	auto& log_mgr = LoggerManager::RefInstance();
 
 	if (not config.ParseArgs(argc, argv)) { return 1; }
-	log_mgr.SetLogfile(config.GetLogfile().c_str());
+	log_mgr.SetLogfile(config.GetLogfile());
 	WorkerManager wrk_mgr(config);
 
 	std::size_t log_batch_size = config.GetBatchSizeOfLogMessages();
@@ -54,10 +58,8 @@ main(int argc, char** argv)
 	wrk_mgr.HandleUnprocessed();
 	log_mgr.HandleUnprocessed();
 
-#ifdef ENABLE_DEBUG
-	pool_stats<LoggerMessage>("LoggerMessage");
-	pool_stats<WorkerResult>("WorkerResult");
-#endif
+	POOL_STATS(LoggerMessage);
+	POOL_STATS(WorkerResult);
 	return 0;
 }
 

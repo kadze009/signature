@@ -7,20 +7,19 @@
 
 
 
-FileWriter::FileWriter(char const* name, file_type_e type /* = file_type_e::BINARY */)
-	: m_name(name)
+FileWriter::FileWriter(std::string_view name, file_type_e type /* = file_type_e::BINARY */)
 {
 	Reset(name, type);
 }
 
 FileWriter::~FileWriter()
 {
-	DetachStandardStreams();
+	DetachIfStandardStreams();
 }
 
 
 void
-FileWriter::DetachStandardStreams() noexcept
+FileWriter::DetachIfStandardStreams() noexcept
 {
 	std::ostream* out = m_out.get();
 	if (   &std::cout == out
@@ -33,7 +32,7 @@ FileWriter::DetachStandardStreams() noexcept
 
 
 void
-FileWriter::Reset(char const* name, file_type_e type /* = file_type_e::BINARY */)
+FileWriter::Reset(std::string_view name, file_type_e type /* = file_type_e::BINARY */)
 {
 	constexpr std::string_view STANDARD_COUT_NAME   {"cout"};
 	constexpr std::string_view STANDARD_STDOUT_NAME {"stdout"};
@@ -48,8 +47,8 @@ FileWriter::Reset(char const* name, file_type_e type /* = file_type_e::BINARY */
 	case file_type_e::TEXT:   break;
 	}
 
-	DetachStandardStreams();
-	m_name = (name != nullptr) ? name : DEFAULT_NAME.data();
+	DetachIfStandardStreams();
+	m_name.assign((not name.empty()) ? name : DEFAULT_NAME);
 
 	if      (   STANDARD_CERR_NAME   == m_name
 	         or STANDARD_STDERR_NAME == m_name)
@@ -67,7 +66,7 @@ FileWriter::Reset(char const* name, file_type_e type /* = file_type_e::BINARY */
 	}
 	else
 	{
-		m_out.reset(new std::ofstream(m_name, mode));
+		m_out = std::make_unique<std::ofstream>(m_name, mode);
 	}
 }
 
@@ -75,7 +74,7 @@ FileWriter::Reset(char const* name, file_type_e type /* = file_type_e::BINARY */
 void
 FileWriter::FlushIfNeeded()
 {
-	m_out->flush();
+	if (IsFlushing()) { m_out->flush(); }
 }
 
 
@@ -90,19 +89,19 @@ FileWriter::Write(char ch)
 void
 FileWriter::Write(std::string_view sv)
 {
-	Write(reinterpret_cast<char const*>(sv.data()), sv.size());
+	Write(sv.data(), sv.size());
 }
 
 
 void
-FileWriter::Write(uint8_t const* data, std::size_t size)
+FileWriter::Write(uint8_t const* data, size_t size)
 {
 	Write(reinterpret_cast<char const*>(data), size);
 }
 
 
 void
-FileWriter::Write(char const* data, std::size_t size)
+FileWriter::Write(char const* data, size_t size)
 {
 	if (not data or size == 0) { return; }
 	m_out->write(data, size);
@@ -111,18 +110,17 @@ FileWriter::Write(char const* data, std::size_t size)
 
 
 void
-FileWriter::Write(void const* data, std::size_t elem_size, std::size_t elem_count)
+FileWriter::Write(void const* data, size_t elem_size, size_t elem_count)
 {
 	auto const* bin_data = static_cast<char const*>(data);
-	std::size_t bin_size = elem_size * elem_count;
+	size_t bin_size = elem_size * elem_count;
 	Write(bin_data, bin_size);
 }
 
 
 void
-FileWriter::SetBufferSize(char* buff, std::size_t buff_size)
+FileWriter::SetBufferSize(char* buff, size_t buff_size)
 {
 	if (not buff) { buff_size = 0; }
 	m_out->rdbuf()->pubsetbuf(buff, buff_size);
 }
-
