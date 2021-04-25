@@ -8,7 +8,7 @@
 
 
 
-class ItemPool
+class PoolItem
 {
 public:
 	void Allocate()       { m_is_free = false; }
@@ -25,8 +25,8 @@ template<typename T>
 class Pool
 {
 public:
-	static_assert(std::is_base_of_v<ItemPool, T>, 
-	              "The items of a pool must be derived from the ItemPool class.");
+	static_assert(std::is_base_of_v<PoolItem, T>,
+	              "The items of a pool must be derived from the PoolItem class.");
 
 	Pool(Pool const&)            = delete;
 	Pool& operator=(Pool const&) = delete;
@@ -49,7 +49,7 @@ public:
 			m_pool.resize(last_item + m_inc_size);
 			item = &m_pool[last_item];
 		}
-		static_cast<ItemPool*>(item)->Allocate();
+		static_cast<PoolItem*>(item)->Allocate();
 		return *item;
 	}
 
@@ -67,6 +67,7 @@ private:
 		return it == m_pool.end() ? nullptr : &*it;
 	}
 
+private:
 	std::size_t   m_inc_size;
 	std::deque<T> m_pool;
 	bool          m_isFree   = true;

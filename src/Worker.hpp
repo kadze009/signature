@@ -18,7 +18,7 @@ class Worker;
 
 
 
-class WorkerResult : public ItemPool
+class WorkerResult : public PoolItem
 {
 public:
 	using hash_t = std::vector<uint8_t>;
@@ -26,7 +26,7 @@ public:
 	std::uint64_t GetBlockNum() const            { return m_blockNum; }
 	hash_t const& GetHash() const                { return m_hash; }
 
-	// Used by IThreadProcessor
+	// Used by IDeferedQueue
 	void EndOfHandle() const                     { m_next = nullptr; Release(); }
 	void SetNext(WorkerResult const* next) const { m_next = next; }
 	WorkerResult const* GetNext() const          { return m_next; }
@@ -37,6 +37,7 @@ private:
 	void SetBlockNum(std::uint64_t v)            { m_blockNum = v; }
 	hash_t& RefHash()                            { return m_hash; }
 
+private:
 	std::uint64_t    m_blockNum = 0;
 	hash_t           m_hash;
 
@@ -70,10 +71,11 @@ public:
 	void ThrowError() const;
 
 private:
-	using future_t = std::future<void>; // void - result of `Run` method
-
 	void Run() noexcept;
 	void DoWork();
+
+private:
+	using future_t = std::future<void>; // void - result of `Run` method
 
 	WorkerManager*       m_mgr;
 	hasher_t             m_hasher;

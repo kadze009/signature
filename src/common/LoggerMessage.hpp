@@ -9,7 +9,7 @@
 
 
 
-class LoggerMessage : public ItemPool
+class LoggerMessage : public PoolItem
 {
 public:
 	LoggerMessage()                                = default;
