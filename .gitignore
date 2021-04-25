@@ -3,3 +3,6 @@ build/
 *.o
 *.vim
 
+.vscode/
+README.local.md
+

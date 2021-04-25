@@ -40,6 +40,7 @@ public:
 private:
 	void Init();
 
+private:
 	/* MD5 context. See realisation in RFC1321*/
 	struct Context
 	{

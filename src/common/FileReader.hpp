@@ -30,6 +30,7 @@ public:
 private:
 	void DetachStandardStreams() noexcept;
 
+private:
 	char const*                      m_name;
 	std::unique_ptr<std::istream>    m_in;
 };

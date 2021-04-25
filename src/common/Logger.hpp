@@ -55,7 +55,7 @@ constexpr char const* short_filename(char const* fname)
 class Logger : public SingletoneThreadLocal<Logger>
 {
 public:
-	enum log_level_e : uint8_t
+	enum class log_level_e : uint8_t
 	{
 		DEBUG,
 		INFO,
@@ -72,7 +72,6 @@ public:
 	void LogDbg(char const* filename, std::size_t line, char const* fmt, ...);
 
 private:
-
 	void LogMessage(
 		log_level_e    lvl,
 		char const*    filename,
@@ -80,12 +79,14 @@ private:
 		char const*    fmt,
 		va_list        vlist);
 
+private:
 	static constexpr std::size_t INIT_POOL_SIZE = 64;
 	static constexpr std::size_t INC_POOL_SIZE  = 32;
-	Pool<LoggerMessage>&   m_pool;
 
+	Pool<LoggerMessage>&   m_pool;
 	std::string            m_thread_id;
 
+private:
 	static std::atomic_uint32_t m_counter;
 };
 
