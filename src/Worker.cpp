@@ -28,19 +28,24 @@ bool
 Worker::RunAsync() noexcept
 {
 	LOG_D("%s: start async running", __FUNCTION__);
-	m_isRunning = true;
+	bool res = false;
+	m_isRunning = false;
 	try
 	{
 		m_future = std::async(std::launch::async, &Worker::Run, this);
+		res = true;
+		m_isRunning = true;
 	}
 	catch (std::system_error const& ex)
 	{
-		m_isRunning = false;
-		LOG_E("%s: cought exception: %s (error code=%s)",
+		LOG_E("%s: caught system_error: %s (error code=%s)",
 		      __FUNCTION__, ex.what(), ex.code().message().c_str());
-		return false;
 	}
-	return true;
+	catch (std::bad_alloc const&)
+	{
+		LOG_E("%s: caught bad_alloc", __FUNCTION__);
+	}
+	return res;
 }
 
 
