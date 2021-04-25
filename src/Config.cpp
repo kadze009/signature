@@ -516,23 +516,21 @@ Config::FinalCheck_ThreadNums()
 
 	if (m_numThreads == Default_s::AMAP_THREAD_NUM)
 	{
-		m_numThreads = hw_cores;
-		//if (m_numThreads > 7) { --m_numThreads; } // stay one core for OS's needes
+		if (hw_cores != 0)
+		{
+			m_numThreads = hw_cores;
+		}
+		else
+		{
+			m_numThreads = Default_s::THREAD_NUM_WHEN_HWCORE_IS_0;
+		}
 	}
-	else if (m_numThreads > 2*hw_cores)
+	else if ((hw_cores > 0) and (m_numThreads > 2*hw_cores))
 	{
 		THROW_ERROR(
 			"%s: the invalid number of expected threads [%zu]: "
-			"available maximum 2*%zu threads.",
+			"available maximum 2*[%zu] threads.",
 			__FUNCTION__, m_numThreads, hw_cores);
-	}
-
-	if (0 == m_numThreads)
-	{
-		THROW_ERROR(
-			"%s: the invalid number of expected threads [%zu]. At least one "
-			"MUST BE choosen.",
-			__FUNCTION__, m_numThreads);
 	}
 }
 

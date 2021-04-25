@@ -33,6 +33,7 @@ public:
 		static constexpr char const* LOGFILE            = "stdout";
 		static constexpr size_t      READ_BUF_SIZE      = 4096;
 		static constexpr uint8_t     BLOCK_FILLER_BYTE  = 0;
+		static constexpr size_t      THREAD_NUM_WHEN_HWCORE_IS_0 = 2;
 	};
 
 	struct BuildVersion_s
@@ -94,7 +95,7 @@ private:
 private:
 	static BuildVersion_s const m_buildVersion;
 
-
+private:
 	start_tp_t const m_startDateTime;
 	clock_tp_t const m_startMoment;
 

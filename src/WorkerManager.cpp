@@ -13,17 +13,24 @@ WorkerManager::WorkerManager(Config& config)
 	: m_cfg(config)
 	, m_out(m_cfg.GetOutputFile().c_str(), FileWriter::file_type_e::TEXT)
 {
-	std::uint64_t const block_size = m_cfg.GetBlockSizeKB() * 1024;
-	std::uint64_t blocks_count = m_cfg.GetInputFileSize() / block_size;
+	uint64_t const block_size = m_cfg.GetBlockSizeKB() * 1024;
+	uint64_t blocks_count = m_cfg.GetInputFileSize() / block_size;
 	if (m_cfg.GetInputFileSize() % block_size != 0)
 	{
 		++blocks_count;
 	}
-	// -1 because the main thread does not calculate hash
-	std::uint64_t worker_num = std::min(m_cfg.GetThreadsNum() - 1, blocks_count);
+
+	auto const worker_num = [&blocks_count](size_t const threads_num) -> uint64_t
+	{
+		//NOTE: `0 == threads_num` is the paranoia case because Config class
+		// will check the value of the `threads_num`.
+		if (1 == threads_num || 0 == threads_num) { return 1; }
+		//NOTE: -1 because the main thread does not calculate hash
+		return std::min(threads_num - 1, blocks_count);
+	}(m_cfg.GetThreadsNum());
 
 	m_workers.reserve(worker_num);
-	for (std::uint64_t block_num = 0; block_num < worker_num; ++block_num)
+	for (uint64_t block_num = 0; block_num < worker_num; ++block_num)
 	{
 		m_workers.emplace_back(*this, block_num);
 	}
@@ -161,8 +168,8 @@ WorkerManager::StopAllWorkers() noexcept
 	StartAborting();
 	do
 	{
-		m_wasFinished = AreAllWorkersStop();
 		std::this_thread::sleep_for(POLLING_DELAY);
+		m_wasFinished = AreAllWorkersStop();
 	}
 	while (not m_wasFinished);
 	LOG_D("%s: finishs", __FUNCTION__);
