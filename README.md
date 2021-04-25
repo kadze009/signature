@@ -74,7 +74,7 @@ A main work is processed by entries of class *Worker*. This class
    4. sends the result to the *WorkerManager*.
 
 The class pairs (*Worker*, *WorkerManager*) and (*Logger*, *LoggerManager*)
-works the same, and their similar work is implemented in `IThreadProcessor`
+works the same, and their similar work is implemented in `IDeferedQueue`
 class. The multithread handling is split by two parts:
    1. Get an item from a pool, fill it and send to a manager. The manager
       adds the item to the end of itself linked list (Compare-And-Swap paradigm).

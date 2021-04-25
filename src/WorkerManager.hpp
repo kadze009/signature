@@ -1,12 +1,12 @@
 #pragma once
 
-#include "common/IThreadProcessor.hpp"
+#include "common/IDeferedQueue.hpp"
 #include "common/FileWriter.hpp"
 #include "Config.hpp"
 #include "Worker.hpp"
 
 
-class WorkerManager : public IThreadProcessor<WorkerResult>
+class WorkerManager : public IDeferedQueue<WorkerResult>
 {
 public:
 	static constexpr std::size_t DEFAULT_RESULTS_BATCH_SIZE = 128;
@@ -16,7 +16,7 @@ public:
 	WorkerManager& operator=(WorkerManager&&)      = delete;
 	WorkerManager& operator=(WorkerManager const&) = delete;
 
-	WorkerManager(Config&);
+	explicit WorkerManager(Config&);
 	~WorkerManager();
 
 	bool Start() noexcept;
@@ -27,13 +27,14 @@ public:
 	Config const& GetConfig() const noexcept       { return m_cfg; }
 
 private:
-	// IThreadProcessor
+	// IDeferedQueue
 	void HandleItem(WorkerResult const&) override;
 
 	Worker* FindFailedWorker() noexcept;
 	bool AreAllWorkersStop() const noexcept;
 	void StopAllWorkers() noexcept;
 
+private:
 	Config&               m_cfg;
 	FileWriter            m_out;
 	std::vector<Worker>   m_workers;

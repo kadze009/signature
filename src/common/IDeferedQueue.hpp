@@ -7,25 +7,26 @@
 
 
 template<typename T>
-class IThreadProcessor
+class IDeferedQueue
 {
 public:
-	using item_t = T;
+	using value_type = T;
 
-	IThreadProcessor()  = default;
-	~IThreadProcessor() = default;
-	IThreadProcessor(IThreadProcessor&&)                 = delete;
-	IThreadProcessor(IThreadProcessor const&)            = delete;
-	IThreadProcessor& operator=(IThreadProcessor&&)      = delete;
-	IThreadProcessor& operator=(IThreadProcessor const&) = delete;
+	IDeferedQueue()  = default;
+	virtual ~IDeferedQueue() = default;
 
-	virtual void HandleItem(item_t const&) = 0;
+	IDeferedQueue(IDeferedQueue&&)                 = delete;
+	IDeferedQueue(IDeferedQueue const&)            = delete;
+	IDeferedQueue& operator=(IDeferedQueue&&)      = delete;
+	IDeferedQueue& operator=(IDeferedQueue const&) = delete;
 
-	void AddItem(item_t const& item)
+	virtual void HandleItem(value_type const&) = 0;
+
+	void AddItem(value_type const& item)
 	{
 		// The `memory_order`s are taken from
 		// [here](https://en.cppreference.com/w/cpp/atomic/atomic/compare_exchange).
-		item_t const* old_last = m_last_node.load();
+		value_type const* old_last = m_last_node.load();
 		while (not m_last_node.compare_exchange_weak(old_last, &item,
 		                                             std::memory_order_release,
 		                                             std::memory_order_relaxed))
@@ -45,8 +46,8 @@ public:
 	{
 		if (not m_head_node || batch_size == 0) { return; }
 
-		item_t const* act_last = m_last_node.load();
-		item_t const* tmp_node = nullptr;
+		value_type const* act_last = m_last_node.load();
+		value_type const* tmp_node = nullptr;
 		std::size_t i = 0;
 		while (i != batch_size && m_head_node != act_last)
 		{
@@ -60,7 +61,12 @@ public:
 
 
 	// NOTE: The function must be called only in the single thread environment,
-	// i.e. when no sub threads.
+	// i.e. when there are no workers threads.
+	// NOTE: this function can't be executed in ~IDeferedQueue because the
+	// order of execution of this method by IDeferedQueue derived classes is
+	// important. For example: LoggerManager has to be destucted the last for
+	// managing messages from another IDeferedQueue derived classes.
+	//
 	void HandleUnprocessed(std::size_t batch_size = 128)
 	{
 		auto* last_node = m_last_node.load(std::memory_order_relaxed);
@@ -76,6 +82,6 @@ public:
 	}
 
 private:
-	item_t const*              m_head_node = nullptr;
-	std::atomic<item_t const*> m_last_node = nullptr;
+	value_type const*              m_head_node = nullptr;
+	std::atomic<value_type const*> m_last_node = nullptr;
 };
