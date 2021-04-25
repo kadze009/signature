@@ -35,6 +35,7 @@ Worker::RunAsync() noexcept
 	}
 	catch (std::system_error const& ex)
 	{
+		m_isRunning = false;
 		LOG_E("%s: cought exception: %s (error code=%s)",
 		      __FUNCTION__, ex.what(), ex.code().message().c_str());
 		return false;
