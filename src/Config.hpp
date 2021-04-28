@@ -29,7 +29,6 @@ public:
 		//NOTE: AMAP = As Much As Possible
 		static constexpr size_t      AMAP_THREAD_NUM    = std::numeric_limits<std::size_t>::max();
 		static constexpr uintmax_t   BLOCK_SIZE_KB      = 1024;
-		static constexpr size_t      LOG_MSG_BATCH_SIZE = 100;
 		static constexpr char const* LOGFILE            = "stdout";
 		static constexpr size_t      READ_BUF_SIZE      = 4096;
 		static constexpr uint8_t     BLOCK_FILLER_BYTE  = 0;
@@ -65,7 +64,6 @@ public:
 	std::string const& GetOutputFile() const noexcept  { return m_outputFile; }
 	uintmax_t GetBlockSizeKB() const noexcept          { return m_blockSizeKB; }
 	uintmax_t GetInputFileSize() const noexcept        { return m_inputFileSize; }
-	size_t GetBatchSizeOfLogMessages() const noexcept  { return m_logMsgBatchSize; }
 	size_t GetThreadsNum() const noexcept              { return m_numThreads; }
 	size_t GetReadBufferSize() const noexcept          { return m_readBufSize; }
 	uint8_t GetBlockFiller() const noexcept            { return m_blockFiller; }
@@ -90,7 +88,6 @@ private:
 	void FinalCheck_BlockSize();
 	void FinalCheck_ThreadNums();
 	void FinalCheck_Algo();
-	void FinalCheck_LogSettings();
 
 private:
 	static BuildVersion_s const m_buildVersion;
@@ -100,7 +97,6 @@ private:
 	clock_tp_t const m_startMoment;
 
 	uintmax_t      m_blockSizeKB     = Default_s::BLOCK_SIZE_KB;
-	size_t         m_logMsgBatchSize = Default_s::LOG_MSG_BATCH_SIZE;
 	size_t         m_numThreads      = Default_s::AMAP_THREAD_NUM; // AMAP = As Much As Possible
 	std::string    m_logfile         { Default_s::LOGFILE };
 	std::string    m_outputFile;

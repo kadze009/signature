@@ -69,9 +69,6 @@ R"(KEYS
             the integer number of threads for processing (must be more then 0)
         * log_file=<file path> (default: stdout)
             the log file path
-        * log_batch_size=<number> (default: 100)
-            the quantity of log messages for writing in async mode during
-            multithread execution
 
 )"
 "EXAMPLES\n"
@@ -310,7 +307,6 @@ Config::ParseArgs(int argc, char** argv) noexcept
 		FinalCheck_BlockSize();
 		FinalCheck_ThreadNums();
 		FinalCheck_Algo();
-		FinalCheck_LogSettings();
 	}
 	catch (std::invalid_argument const& ex)
 	{
@@ -448,17 +444,6 @@ Config::ParseOption(char const* key_v)
 		m_logfile.assign(opt_v);
 	}
 
-	else if (opt_k == "log_batch_size")
-	{
-		auto res = std::from_chars(opt_v.begin(), opt_v.end(), m_logMsgBatchSize);
-		if (res.ec != std::errc())
-		{
-			THROW_INVALID_ARGUMENT(
-				"can't parse log messages batch size [%.*s]: %s",
-				LOG_SV(opt_v), std::make_error_code(res.ec).message().c_str());
-		}
-	}
-
 	else
 	{
 		THROW_INVALID_ARGUMENT("an unexpected option [%.*s]", LOG_SV(opt_k));
@@ -542,18 +527,6 @@ Config::FinalCheck_Algo()
 }
 
 
-void
-Config::FinalCheck_LogSettings()
-{
-	if (0 == m_logMsgBatchSize)
-	{
-		THROW_ERROR(
-			"%s: the log messages batch size MUST be more then 0",
-			__FUNCTION__);
-	}
-}
-
-
 char const*
 Config::toString() const noexcept
 {
@@ -564,7 +537,6 @@ Config::toString() const noexcept
 	str(R"({
 	LOG FILE        = %s
 	LOG LEVEL       = %s
-	LOG BATCH SIZE  = %zu
 	ALGORITHM       = %s
 	NUMBER THREADS  = %zu
 	INPUT FILE      = %s
@@ -575,7 +547,6 @@ Config::toString() const noexcept
 })",
 		  m_logfile.c_str()
 		, ::toString(m_actLogLvl)
-		, m_logMsgBatchSize
 		, ::toString(m_initAlgo->GetType())
 		, m_numThreads
 		, m_inputFile.c_str()
