@@ -10,8 +10,8 @@ DESCRIPTION
 
 # Specify a Release build by default
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release")
-  message(STATUS "Build type not specified: Use Release by default")
+	set(CMAKE_BUILD_TYPE "Release")
+	message(STATUS "Build type not specified: Use Release by default")
 endif(NOT CMAKE_BUILD_TYPE)
 
 configure_file(BuildVersion.hpp.in BuildVersion.hpp)
@@ -21,6 +21,8 @@ add_executable(signature
 	algo/HasherFactory.cpp
 	algo/HasherCrc32.cpp
 	algo/HasherMd5.cpp
+	common/MpocQueue.cpp
+	common/MpocQueueProducer.cpp
 	common/FileReader.cpp
 	common/FileWriter.cpp
 	common/Logger.cpp
