@@ -41,9 +41,6 @@ KEYS
             the integer number of threads for processing (must be more then 0)
         * log_file=<file path> (default: stdout)
             the log file path
-        * log_batch_size=<number> (default: 100)
-            the quantity of log messages for writing in async mode during
-            multithread execution
 
 EXAMPLES
     signature input.dat output.dat
