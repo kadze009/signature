@@ -8,27 +8,16 @@
 
 
 
-// See common/Logger.hpp
-#ifdef ENABLE_DEBUG
-#include "common/PoolManager.hpp"
-template<typename T>
-void pool_stats(char const* name)
+namespace
 {
-	DEBUG("=== Stats for %s ===", name);
-	auto& pools = PoolManager::GetSpInstance()->RefPools<T>();
-	std::size_t pool_counter = 0;
-	for (auto& pool : pools)
-	{
-		++pool_counter;
-		DEBUG("> #%02zu: size=%zu", pool_counter, pool.size());
-	}
-	DEBUG("===( count = %zu )===", pool_counter);
-}
-#define POOL_STATS(type) pool_stats<type>(#type)
-#else
-#define POOL_STATS(type) (void)0
-#endif
-
+enum exit_codes_e : int
+{
+	SUCCESS = 0,
+	CONFIG_PARSE_ERROR,
+	WORKERS_START_ERROR,
+	WORKERS_RUNTIME_ERROR,
+};
+} // namespace
 
 
 int
@@ -39,7 +28,7 @@ main(int argc, char** argv)
 	auto& log_mgr = LoggerManager::RefInstance();
 
 	auto& config = Config::RefInstance();
-	if (not config.ParseArgs(argc, argv)) { return 1; }
+	if (not config.ParseArgs(argc, argv)) { return exit_codes_e::CONFIG_PARSE_ERROR; }
 
 	//NOTE: this is a workaround for changing logfile because the current
 	// implementation is not thread safe
@@ -48,18 +37,9 @@ main(int argc, char** argv)
 	log_mgr.StartHandleMessagesInSeparateThread();
 
 	WorkerManager wrk_mgr(config);
-	if (not wrk_mgr.Start()) { return 2; }
-
-	do
-	{
-		wrk_mgr.DoWork();
-		std::this_thread::sleep_for(POLLING_DELAY);
-	}
-	while (not wrk_mgr.WasFinished());
-	wrk_mgr.HandleUnprocessed();
-
-	POOL_STATS(LoggerMessage);
-	POOL_STATS(WorkerResult);
-	return 0;
+	if (not wrk_mgr.Start()) { return exit_codes_e::WORKERS_START_ERROR; }
+	return (wrk_mgr.DoWork())
+		? exit_codes_e::SUCCESS
+		: exit_codes_e::WORKERS_RUNTIME_ERROR;
 }
 

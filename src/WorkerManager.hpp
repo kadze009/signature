@@ -1,15 +1,23 @@
 #pragma once
 
-#include "common/IDeferedQueue.hpp"
+#include "common/MpocQueue.hpp"
+#include "common/MpocQueueProducer.hpp"
 #include "common/FileWriter.hpp"
+#include "common/PoolStorage.hpp"
 #include "Config.hpp"
 #include "Worker.hpp"
 
 
-class WorkerManager : public IDeferedQueue<WorkerResult>
+class WorkerManager
 {
 public:
-	static constexpr std::size_t DEFAULT_RESULTS_BATCH_SIZE = 128;
+	using pool_storage_t = PoolStorage<WorkerResult>;
+	using result_pool_t  = pool_storage_t::pool_t;
+	using result_queue_t = std::shared_ptr<MpocQueue>;
+
+	static constexpr size_t   INIT_RESULTS_SIZE          = 64;
+	static constexpr size_t   INC_RESULTS_POOL           = 32;
+	static constexpr uint32_t DEFAULT_QUEUE_POLLING_MS   = 1000;
 
 	WorkerManager(WorkerManager&&)                 = delete;
 	WorkerManager(WorkerManager const&)            = delete;
@@ -20,16 +28,21 @@ public:
 	~WorkerManager();
 
 	bool Start() noexcept;
-	void DoWork() noexcept;
+	bool DoWork() noexcept;
+	void SaveResult(WorkerResult const&);
 	bool WasFinished() const noexcept              { return m_wasFinished; }
 	bool IsAborting() const noexcept               { return m_isAborting; }
 	void StartAborting() noexcept;
 	Config const& GetConfig() const noexcept       { return m_cfg; }
 
-private:
-	// IDeferedQueue
-	void HandleItem(WorkerResult const&) override;
+	MpocQueueProducer NewResultProducer() noexcept { return m_results->NewProducer(); }
+	result_pool_t& NewResultPool() noexcept
+	{
+		return m_pool_storage.Allocate(INIT_RESULTS_SIZE, INC_RESULTS_POOL);
+	}
+	void HandleUnprocessed() noexcept;
 
+private:
 	Worker* FindFailedWorker() noexcept;
 	bool AreAllWorkersStop() const noexcept;
 	void StopAllWorkers() noexcept;
@@ -37,8 +50,10 @@ private:
 private:
 	Config&               m_cfg;
 	FileWriter            m_out;
+	pool_storage_t        m_pool_storage;
+	result_queue_t        m_results;
 	std::vector<Worker>   m_workers;
-	std::size_t           m_resultsBatchSize = DEFAULT_RESULTS_BATCH_SIZE;
+
 	bool                  m_wasFinished = false;
 	bool                  m_isAborting  = false;
 };

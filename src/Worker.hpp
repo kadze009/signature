@@ -9,6 +9,8 @@
 
 #include "common/Pool.hpp"
 #include "common/FileReader.hpp"
+#include "common/MpocQueueItem.hpp"
+#include "common/MpocQueueProducer.hpp"
 #include "algo/IHasher.hpp"
 
 
@@ -18,24 +20,19 @@ class Worker;
 
 
 
-class WorkerResult : public PoolItem
+class WorkerResult : public PoolItem, public MpocQueueItem
 {
 public:
 	using hash_t = std::vector<uint8_t>;
 
-	std::uint64_t GetBlockNum() const            { return m_blockNum; }
-	hash_t const& GetHash() const                { return m_hash; }
-
-	// Used by IDeferedQueue
-	void EndOfHandle() const                     { m_next = nullptr; Release(); }
-	void SetNext(WorkerResult const* next) const { m_next = next; }
-	WorkerResult const* GetNext() const          { return m_next; }
+	std::uint64_t GetBlockNum() const noexcept { return m_blockNum; }
+	hash_t const& GetHash() const noexcept     { return m_hash; }
 
 private:
 	friend class Worker;
 
-	void SetBlockNum(std::uint64_t v)            { m_blockNum = v; }
-	hash_t& RefHash()                            { return m_hash; }
+	void SetBlockNum(std::uint64_t v) noexcept { m_blockNum = v; }
+	hash_t& RefHash() noexcept                 { return m_hash; }
 
 private:
 	std::uint64_t    m_blockNum = 0;
@@ -73,6 +70,7 @@ public:
 private:
 	void Run() noexcept;
 	void DoWork();
+	void ThrowRuntimeError(char const* format, ...) const;
 
 private:
 	using future_t = std::future<void>; // void - result of `Run` method
@@ -82,9 +80,8 @@ private:
 	future_t             m_future;
 	FileReader           m_in;
 
-	static constexpr std::size_t INIT_RESULTS_SIZE = 64;
-	static constexpr std::size_t INC_RESULTS_POOL  = 32;
 	Pool<WorkerResult>&  m_results;
+	MpocQueueProducer    m_producer;
 	readbuf_t            m_readBuffer;
 
 	std::exception_ptr   m_exceptPtr;

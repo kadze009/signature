@@ -2,9 +2,10 @@
 
 #include <algorithm>
 
+#include <cstdarg>
+
 #include "common/Logger.hpp"
 #include "algo/HasherFactory.hpp"
-#include "common/PoolManager.hpp"
 #include "WorkerManager.hpp"
 
 
@@ -12,8 +13,8 @@
 Worker::Worker(WorkerManager& mgr, std::uint64_t block_num)
 	: m_mgr(&mgr)
 	, m_in(m_mgr->GetConfig().GetInputFile().c_str())
-	, m_results(PoolManager::GetSpInstance()
-	            ->NewPool<WorkerResult>(INIT_RESULTS_SIZE, INC_RESULTS_POOL))
+	, m_results(m_mgr->NewResultPool())
+	, m_producer(m_mgr->NewResultProducer())
 	, m_blockNum(block_num)
 {
 	Config const& cfg = m_mgr->GetConfig();
@@ -60,6 +61,7 @@ Worker::Run() noexcept
 	}
 	catch(...)
 	{
+		LOG_E("%s BLOCK[%zu]: catch an exception", __FUNCTION__, m_blockNum);
 		m_exceptPtr = std::current_exception();
 	}
 
@@ -124,7 +126,11 @@ Worker::DoWork()
 		hash_buf.resize(m_hasher->ResultSize()); //TODO: resize each time?
 		result.SetBlockNum(m_blockNum);
 		m_hasher->Finish(hash_buf.data());
-		m_mgr->AddItem(result);
+		if (not m_producer.push(result))
+		{
+			ThrowRuntimeError("%s: can't save the result. Abort execution.",
+				__FUNCTION__);
+		}
 
 		m_in.SkipNextBytes(bytes_shift);
 		LOG_I("%s: Finish calculate BLOCK #%zu", __FUNCTION__, m_blockNum);
@@ -140,3 +146,18 @@ Worker::ThrowError() const
 	if (HasError()) { std::rethrow_exception(m_exceptPtr); }
 }
 
+
+void Worker::ThrowRuntimeError(char const* format, ...) const
+{
+	constexpr std::size_t MSG_SIZE = 256;
+	static std::array<char, MSG_SIZE> msg;
+	static StringFormer fmt(msg.data(), msg.size());
+
+	fmt.reset();
+	va_list args;
+	va_start(args, format);
+	fmt.append("BLOCK[%zu] ", m_blockNum);
+	fmt.append(format, args);
+	va_end(args);
+	throw std::runtime_error(fmt.c_str());
+}

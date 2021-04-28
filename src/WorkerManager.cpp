@@ -12,6 +12,7 @@
 WorkerManager::WorkerManager(Config& config)
 	: m_cfg(config)
 	, m_out(m_cfg.GetOutputFile().c_str(), FileWriter::file_type_e::TEXT)
+	, m_results(MpocQueue::Allocate(DEFAULT_QUEUE_POLLING_MS))
 {
 	uint64_t const block_size = m_cfg.GetBlockSizeKB() * 1024;
 	uint64_t blocks_count = m_cfg.GetInputFileSize() / block_size;
@@ -52,6 +53,8 @@ WorkerManager::WorkerManager(Config& config)
 WorkerManager::~WorkerManager()
 {
 	StopAllWorkers();
+	HandleUnprocessed();
+	LOG_D("%s: active workers = %zu", __FUNCTION__, m_results->ProducerCount());
 }
 
 
@@ -78,47 +81,69 @@ WorkerManager::Start() noexcept
 
 
 
-void
+bool
 WorkerManager::DoWork() noexcept
 {
-	if (m_wasFinished) { return; }
+	bool was_error = false;
+	uint64_t failed_worker_block_num = 0;
+	std::string failed_worker_err_msg;
 
-	m_wasFinished = AreAllWorkersStop();
-
-	if (not IsAborting())
+	//TODO: split the loop on two threads
+	while (not m_wasFinished)
 	{
-		if (not m_wasFinished)
+		//Responcibility: save the workers' results
+		if (WorkerResult* res = m_results->pop_as<WorkerResult>())
 		{
-			if (Worker* failed_worker = FindFailedWorker(); failed_worker)
-			{
-				try { failed_worker->ThrowError(); }
-				catch (std::exception const& ex)
-				{
-					LOG_E("%s: detect faild Worker with BLOCK #%zu: %s",
-						  __FUNCTION__,
-						  failed_worker->GetBlockNum(),
-						  ex.what());
-				}
-				StartAborting();
-				return;
-			}
+			SaveResult(*res);
+			res->Release();
 		}
+
+		//Responcibility: check health of the workres
+		m_wasFinished = AreAllWorkersStop();
+		if (not m_isAborting)
+		{
+			if (not m_wasFinished)
+			{
+				if (Worker* failed_worker = FindFailedWorker(); failed_worker)
+				{
+					try { failed_worker->ThrowError(); }
+					catch (std::exception const& ex)
+					{
+						was_error = true;
+						failed_worker_block_num = failed_worker->GetBlockNum();
+						failed_worker_err_msg.assign(ex.what());
+						LOG_E("%s: the Worker with BLOCK #%zu failed: %s",
+							__FUNCTION__, failed_worker_block_num,
+							failed_worker_err_msg.c_str());
+					}
+					StartAborting();
+					continue;
+				}
+			}
+			else
+			{
+				LOG_I("%s: all Workers were finished", __FUNCTION__);
+			}
+		} //if (not m_isAborting)
 		else
 		{
-			LOG_I("%s: all Workers were finish", __FUNCTION__);
+			if (m_wasFinished) { m_isAborting = false; }
 		}
-		HandleBatchOfItems(m_resultsBatchSize);
-	} //if (not IsAborting())
-	else
-	{
-		if (m_wasFinished) { m_isAborting = false; }
 	}
+
+	if(was_error)
+	{
+		LOG_E("%s: there was initial error: "
+			"the Worker with BLOCK #%zu failed: %s",
+			__FUNCTION__,
+			failed_worker_block_num, failed_worker_err_msg.c_str());
+	}
+	return not was_error;
 }
 
 
-
 void
-WorkerManager::HandleItem(WorkerResult const& res)
+WorkerManager::SaveResult(WorkerResult const& res)
 {
 	auto const  bnum = res.GetBlockNum();
 	auto const& hash = res.GetHash();
@@ -144,9 +169,8 @@ WorkerManager::StartAborting() noexcept
 bool
 WorkerManager::AreAllWorkersStop() const noexcept
 {
-	auto it = std::find_if(m_workers.begin(), m_workers.end(),
+	return std::none_of(std::begin(m_workers), std::end(m_workers),
 		[](Worker const& w) { return w.IsRunning(); });
-	return it == m_workers.end();
 }
 
 
@@ -154,18 +178,23 @@ WorkerManager::AreAllWorkersStop() const noexcept
 Worker*
 WorkerManager::FindFailedWorker() noexcept
 {
-	auto it = std::find_if(m_workers.begin(), m_workers.end(),
+	auto it = std::find_if(std::begin(m_workers), std::end(m_workers),
 		[](Worker const& w) { return not w.IsRunning() and w.HasError(); });
-	return it != m_workers.end() ? &*it : nullptr;
+	return (it != std::end(m_workers)) ? &*it : nullptr;
 }
 
 
 void
 WorkerManager::StopAllWorkers() noexcept
 {
-	constexpr std::chrono::milliseconds POLLING_DELAY {50};
+	if (WasFinished())
+	{
+		LOG_D("%s: all workers are already stopped", __FUNCTION__);
+		return;
+	}
 	LOG_D("%s: starts", __FUNCTION__);
 	StartAborting();
+	constexpr std::chrono::milliseconds POLLING_DELAY {50};
 	do
 	{
 		std::this_thread::sleep_for(POLLING_DELAY);
@@ -175,3 +204,21 @@ WorkerManager::StopAllWorkers() noexcept
 	LOG_D("%s: finishs", __FUNCTION__);
 }
 
+
+void
+WorkerManager::HandleUnprocessed() noexcept
+{
+	if (not WasFinished())
+	{
+		LOG_E("%s: attempt to call when there is Non Finished statet.",
+		      __FUNCTION__);
+		return;
+	}
+
+	while (not m_results->empty())
+	{
+		WorkerResult* res = m_results->pop_as<WorkerResult>();
+		SaveResult(*res); //NOTE: can throw an IO-related exception
+		res->Release();
+	}
+}
