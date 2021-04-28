@@ -3,14 +3,16 @@
 #include <forward_list>
 #include <mutex>
 
-#include "common/Singletone.hpp"
+#include "common/SharedPtrSingleton.hpp"
 #include "common/Pool.hpp"
 
 
 
-class PoolManager: public Singletone<PoolManager>
+class PoolManager: public SharedPtrSingleton<PoolManager>
 {
 public:
+	~PoolManager() = default;
+
 	template<typename ItemT>
 	Pool<ItemT>& NewPool(std::size_t init_size, std::size_t inc_size)
 	{
@@ -34,6 +36,8 @@ public:
 	}
 
 private:
+	friend class SharedPtrSingleton<PoolManager>;
 
+	PoolManager() = default;
 };
 

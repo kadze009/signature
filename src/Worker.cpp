@@ -4,7 +4,7 @@
 
 #include "common/Logger.hpp"
 #include "algo/HasherFactory.hpp"
-#include "PoolManager.hpp"
+#include "common/PoolManager.hpp"
 #include "WorkerManager.hpp"
 
 
@@ -12,8 +12,8 @@
 Worker::Worker(WorkerManager& mgr, std::uint64_t block_num)
 	: m_mgr(&mgr)
 	, m_in(m_mgr->GetConfig().GetInputFile().c_str())
-	, m_results(PoolManager::RefInstance()
-	            .NewPool<WorkerResult>(INIT_RESULTS_SIZE, INC_RESULTS_POOL))
+	, m_results(PoolManager::GetSpInstance()
+	            ->NewPool<WorkerResult>(INIT_RESULTS_SIZE, INC_RESULTS_POOL))
 	, m_blockNum(block_num)
 {
 	Config const& cfg = m_mgr->GetConfig();
