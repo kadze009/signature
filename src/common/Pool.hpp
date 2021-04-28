@@ -11,9 +11,9 @@
 class PoolItem
 {
 public:
-	void Allocate()       { m_is_free = false; }
-	void Release() const  { m_is_free = true; }
-	bool IsFree() const   { return m_is_free; }
+	void Allocate() noexcept      { m_is_free = false; }
+	void Release() const noexcept { m_is_free = true; }
+	bool IsFree() const noexcept  { return m_is_free; }
 
 private:
 	mutable bool m_is_free = true;

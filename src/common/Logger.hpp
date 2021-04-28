@@ -17,13 +17,6 @@
 
 //#define ENABLE_DEBUG
 
-#ifdef ENABLE_DEBUG
-#include <cstdio>
-#define DEBUG(FMT, ...) fprintf(stderr,\
-	"LOG [" __FILE__ ":%d]: " FMT "\n", __LINE__ __VA_OPT__(,) __VA_ARGS__)
-#else
-#define DEBUG(FMT, ...)
-#endif
 
 
 namespace detail
@@ -37,6 +30,15 @@ constexpr char const* short_filename(char const* fname)
 		: fname_sv.data();
 }
 } // namespace detail
+
+
+#ifdef ENABLE_DEBUG
+#include <cstdio>
+#define DEBUG(FMT, ...) fprintf(stderr,\
+	"LOG [%s:%d]: " FMT "\n", detail::short_filename(__FILE__), __LINE__ __VA_OPT__(,) __VA_ARGS__)
+#else
+#define DEBUG(FMT, ...)
+#endif
 
 
 #define LOG_E(FMT, ...)  Logger::RefInstance().LogErr(detail::short_filename(__FILE__), __LINE__, FMT __VA_OPT__(,) __VA_ARGS__)

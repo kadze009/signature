@@ -1,6 +1,5 @@
 #pragma once
 
-#include <mutex>
 #include <atomic>
 #include <string_view>
 #include <thread>
@@ -17,23 +16,6 @@
 
 
 
-//TODO:
-//    * **The problem:** what will happen if the first thread calls
-//      `PrintBatchOfMessages` and the second thread calls `SetLogfile` or
-//      `NewLogfile`?
-//      **Temp solution:** I expect that these methods will be called only by
-//      one thread.
-//      **Bad solution:** save the thread ID of the main thread and check it
-//      before execution some methods. If actual thread ID and saved thread ID
-//      were different then it would be an developer error and the code would
-//      `throw 666;` (uncathchable exception).
-//
-//    * LoggerManager should take the pools of messages for Loggers like a
-//      shared pointer objects and should wait until pools are state 'FREE'
-//      or a number of a pool owners is ONE. It needs for `HandleUnprocessed`
-//      calling. **WARNING**: possible freezing because LoggerManager starts to
-//      destroy itself but no one will start stopping threads.
-//
 class LoggerManager : public Singletone<LoggerManager>
 {
 public:
@@ -41,7 +23,7 @@ public:
 	using pool_storage_t = PoolStorage<LoggerMessage>;
 	using msg_pool_t     = pool_storage_t::pool_t;
 
-	static constexpr uint32_t DEFAULT_QUEUE_POOLING_MS = 300;
+	static constexpr uint32_t DEFAULT_QUEUE_POLLING_MS = 300;
 	static constexpr size_t   INIT_MSG_POOL_SIZE       = 64;
 	static constexpr size_t   INC_MSG_POOL_VAL         = 32;
 

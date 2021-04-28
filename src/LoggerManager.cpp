@@ -21,7 +21,7 @@
 
 LoggerManager::LoggerManager()
 	: m_out("stdout", FileWriter::file_type_e::TEXT)
-	, m_queue(MpocQueue::Allocate(DEFAULT_QUEUE_POOLING_MS))
+	, m_queue(MpocQueue::Allocate(DEFAULT_QUEUE_POLLING_MS))
 {
 	m_out.SetBufferSize(nullptr, 0);
 }
@@ -36,8 +36,8 @@ LoggerManager::~LoggerManager()
 		m_is_handling = false;
 	}
 	HandleUnprocessed();
-	NotThreadSafe_InternalPrint("LoggerManager::dtor: log_producer_count=%zu",
-		LogProducerCount());
+	//NotThreadSafe_InternalPrint(
+	//	"%s: log_producer_count=%zu", __FUNCTION__, LogProducerCount());
 }
 
 
@@ -98,9 +98,6 @@ LoggerManager::StartHandleMessagesInSeparateThread()
 void
 LoggerManager::HandleMessages() noexcept
 {
-	constexpr std::size_t MSG_SIZE = 256;
-	std::array<char, MSG_SIZE> msg;
-	StringFormer fmt(msg.data(), msg.size());
 	try
 	{
 		while (not m_need_stop_handling)
@@ -114,8 +111,8 @@ LoggerManager::HandleMessages() noexcept
 	}
 	catch (std::exception const& ex)
 	{
-		NotThreadSafe_InternalPrint(
-			"FATAL %s: unexpected exception: %s", __FUNCTION__, ex.what());
+		LOG_E("%s [FATAL]: unexpected exception: %s",
+		      __FUNCTION__, ex.what());
 	}
 }
 
