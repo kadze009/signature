@@ -10,12 +10,12 @@
 
 // See common/Logger.hpp
 #ifdef ENABLE_DEBUG
-#include "PoolManager.hpp"
+#include "common/PoolManager.hpp"
 template<typename T>
 void pool_stats(char const* name)
 {
 	DEBUG("=== Stats for %s ===", name);
-	auto& pools = PoolManager::RefInstance().RefPools<T>();
+	auto& pools = PoolManager::GetSpInstance()->RefPools<T>();
 	std::size_t pool_counter = 0;
 	for (auto& pool : pools)
 	{
@@ -36,27 +36,27 @@ main(int argc, char** argv)
 {
 	constexpr std::chrono::milliseconds POLLING_DELAY {100};
 	std::ios::sync_with_stdio(false);
-
-	auto& config  = Config::RefInstance();
 	auto& log_mgr = LoggerManager::RefInstance();
 
+	auto& config = Config::RefInstance();
 	if (not config.ParseArgs(argc, argv)) { return 1; }
-	log_mgr.SetLogfile(config.GetLogfile());
-	WorkerManager wrk_mgr(config);
 
-	std::size_t log_batch_size = config.GetBatchSizeOfLogMessages();
-	log_mgr.SetSyncMode(false);
+	//NOTE: this is a workaround for changing logfile because the current
+	// implementation is not thread safe
+	log_mgr.HandleUnprocessed();
+	log_mgr.NotThreadSafe_SetLogfile(config.GetLogfile());
+	log_mgr.StartHandleMessagesInSeparateThread();
+
+	WorkerManager wrk_mgr(config);
 	if (not wrk_mgr.Start()) { return 2; }
 
 	do
 	{
-		log_mgr.HandleBatchOfItems(log_batch_size);
 		wrk_mgr.DoWork();
 		std::this_thread::sleep_for(POLLING_DELAY);
 	}
 	while (not wrk_mgr.WasFinished());
 	wrk_mgr.HandleUnprocessed();
-	log_mgr.HandleUnprocessed();
 
 	POOL_STATS(LoggerMessage);
 	POOL_STATS(WorkerResult);

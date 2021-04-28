@@ -7,10 +7,12 @@
 
 #include <cstdint>
 
+#include "MpocQueueProducer.hpp"
 #include "Singletone.hpp"
 #include "LoggerMessage.hpp"
 #include "Pool.hpp"
 #include "StringFormer.hpp"
+
 
 
 //#define ENABLE_DEBUG
@@ -24,6 +26,8 @@
 #endif
 
 
+namespace detail
+{
 constexpr char const* short_filename(char const* fname)
 {
 	std::string_view fname_sv {fname};
@@ -32,12 +36,13 @@ constexpr char const* short_filename(char const* fname)
 		? fname_sv.substr(p + 1).data()
 		: fname_sv.data();
 }
+} // namespace detail
 
 
-#define LOG_E(FMT, ...)  Logger::RefInstance().LogErr(short_filename(__FILE__), __LINE__, FMT __VA_OPT__(,) __VA_ARGS__)
-#define LOG_W(FMT, ...)  Logger::RefInstance().LogWrn(short_filename(__FILE__), __LINE__, FMT __VA_OPT__(,) __VA_ARGS__)
-#define LOG_I(FMT, ...)  Logger::RefInstance().LogInf(short_filename(__FILE__), __LINE__, FMT __VA_OPT__(,) __VA_ARGS__)
-#define LOG_D(FMT, ...)  Logger::RefInstance().LogDbg(short_filename(__FILE__), __LINE__, FMT __VA_OPT__(,) __VA_ARGS__)
+#define LOG_E(FMT, ...)  Logger::RefInstance().LogErr(detail::short_filename(__FILE__), __LINE__, FMT __VA_OPT__(,) __VA_ARGS__)
+#define LOG_W(FMT, ...)  Logger::RefInstance().LogWrn(detail::short_filename(__FILE__), __LINE__, FMT __VA_OPT__(,) __VA_ARGS__)
+#define LOG_I(FMT, ...)  Logger::RefInstance().LogInf(detail::short_filename(__FILE__), __LINE__, FMT __VA_OPT__(,) __VA_ARGS__)
+#define LOG_D(FMT, ...)  Logger::RefInstance().LogDbg(detail::short_filename(__FILE__), __LINE__, FMT __VA_OPT__(,) __VA_ARGS__)
 #define LOG_SV(sv) (int)sv.size(), sv.data()
 
 #define THROW_ERROR(FMT, ...) \
@@ -80,10 +85,8 @@ private:
 		va_list        vlist);
 
 private:
-	static constexpr std::size_t INIT_POOL_SIZE = 64;
-	static constexpr std::size_t INC_POOL_SIZE  = 32;
-
 	Pool<LoggerMessage>&   m_pool;
+	MpocQueueProducer      m_producer;
 	std::string            m_thread_id;
 
 private:

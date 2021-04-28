@@ -6,10 +6,11 @@
 #include <cstdint>
 
 #include "Pool.hpp"
+#include "MpocQueueItem.hpp"
 
 
 
-class LoggerMessage : public PoolItem
+class LoggerMessage : public PoolItem, public MpocQueueItem
 {
 public:
 	LoggerMessage()                                = default;
@@ -22,13 +23,8 @@ public:
 	static constexpr std::size_t MSG_MAX_SIZE = 512;
 	using content_t = std::array<char, MSG_MAX_SIZE>;
 
-	content_t& RefContent()           { return m_content; }
-	std::string_view GetSV() const    { return std::string_view(m_content.data()); }
-
-	// Used by ThreadProcessor
-	void EndOfHandle() const                      { m_next = nullptr; Release(); }
-	void SetNext(LoggerMessage const* next) const { m_next = next; }
-	LoggerMessage const* GetNext() const          { return m_next; }
+	content_t& content() noexcept        { return m_content; }
+	std::string_view sv() const noexcept { return std::string_view(m_content.data()); }
 
 private:
 	content_t                       m_content;

@@ -9,7 +9,6 @@
 #include <cstdarg>
 
 #include "Config.hpp"
-#include "PoolManager.hpp"
 #include "LoggerManager.hpp"
 
 
@@ -44,8 +43,8 @@ toString(Logger::log_level_e v)
 std::atomic_uint32_t Logger::m_counter = ATOMIC_VAR_INIT(0);
 
 Logger::Logger()
-	: m_pool(PoolManager::RefInstance()
-	         .NewPool<LoggerMessage>(INIT_POOL_SIZE, INC_POOL_SIZE))
+	: m_pool(LoggerManager::RefInstance().NewMessagePool())
+	, m_producer(LoggerManager::RefInstance().NewLogProducer())
 {
 	auto count_val = Logger::m_counter.fetch_add(1, std::memory_order_relaxed);
 	std::ostringstream ss;
@@ -90,7 +89,7 @@ Logger::LogMessage(
 	auto const duration = Config::RefInstance().GetDurationSinceStart();
 	LoggerMessage& msg = m_pool.allocate();
 
-	auto& buffer = msg.RefContent();
+	auto& buffer = msg.content();
 	StringFormer sf{buffer.data(), buffer.size()};
 
 	auto const sec  =   std::chrono::duration_cast<std::chrono::seconds>(duration);
@@ -102,6 +101,6 @@ Logger::LogMessage(
 	          filename, line_n);
 	sf.append(fmt, vlist);
 
-	LoggerManager::RefInstance().AddMessage(msg);
+	m_producer.push(msg);
 }
 
