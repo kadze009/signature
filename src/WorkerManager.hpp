@@ -12,7 +12,7 @@ class WorkerManager
 {
 public:
 	using pool_storage_t = PoolStorage<WorkerResult>;
-	using result_pool_t  = pool_storage_t::pool_t;
+	using result_pool_t  = pool_storage_t::wp_pool_t;
 	using result_queue_t = std::shared_ptr<MpocQueue>;
 
 	static constexpr size_t   INIT_RESULTS_SIZE          = 64;
@@ -36,7 +36,7 @@ public:
 	Config const& GetConfig() const noexcept       { return m_cfg; }
 
 	MpocQueueProducer NewResultProducer() noexcept { return m_results->NewProducer(); }
-	result_pool_t& NewResultPool() noexcept
+	result_pool_t NewResultPool() noexcept
 	{
 		return m_pool_storage.Allocate(INIT_RESULTS_SIZE, INC_RESULTS_POOL);
 	}

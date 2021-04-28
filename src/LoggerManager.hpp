@@ -21,7 +21,7 @@ class LoggerManager : public Singletone<LoggerManager>
 public:
 	using msg_queue_t    = std::shared_ptr<MpocQueue>;
 	using pool_storage_t = PoolStorage<LoggerMessage>;
-	using msg_pool_t     = pool_storage_t::pool_t;
+	using msg_pool_t     = pool_storage_t::wp_pool_t;
 
 	static constexpr uint32_t DEFAULT_QUEUE_POLLING_MS = 300;
 	static constexpr size_t   INIT_MSG_POOL_SIZE       = 64;
@@ -39,7 +39,7 @@ public:
 
 	size_t LogProducerCount() const noexcept    { return m_queue->ProducerCount(); }
 	MpocQueueProducer NewLogProducer() noexcept { return m_queue->NewProducer(); }
-	msg_pool_t& NewMessagePool() noexcept
+	msg_pool_t NewMessagePool() noexcept
 	{
 		return m_pool_storage.Allocate(INIT_MSG_POOL_SIZE, INC_MSG_POOL_VAL);
 	}

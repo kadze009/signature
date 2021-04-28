@@ -62,6 +62,8 @@ constexpr char const* short_filename(char const* fname)
 class Logger : public SingletoneThreadLocal<Logger>
 {
 public:
+	using wp_pool_t = std::weak_ptr<Pool<LoggerMessage>>;
+
 	enum class log_level_e : uint8_t
 	{
 		DEBUG,
@@ -87,7 +89,7 @@ private:
 		va_list        vlist);
 
 private:
-	Pool<LoggerMessage>&   m_pool;
+	wp_pool_t              m_pool;
 	MpocQueueProducer      m_producer;
 	std::string            m_thread_id;
 

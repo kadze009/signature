@@ -65,8 +65,11 @@ Worker::Run() noexcept
 		m_exceptPtr = std::current_exception();
 	}
 
-	LOG_D("%s: Stop execution. The results pool size = %zu",
-	      __FUNCTION__, m_results.size());
+	if (auto sp_results = m_results.lock())
+	{
+		LOG_D("%s: Stop execution. The results pool size = %zu",
+			__FUNCTION__, sp_results->size());
+	}
 	m_isRunning = false;
 }
 
@@ -121,7 +124,13 @@ Worker::DoWork()
 				remains = 0;
 			}
 		}
-		WorkerResult& result = m_results.allocate();
+		auto sp_results = m_results.lock();
+		if (not sp_results)
+		{
+			ThrowRuntimeError("%s: can't allocate result object. Abort execution.",
+				__FUNCTION__);
+		}
+		WorkerResult& result = sp_results->allocate();
 		auto& hash_buf = result.RefHash();
 		hash_buf.resize(m_hasher->ResultSize()); //TODO: resize each time?
 		result.SetBlockNum(m_blockNum);
@@ -159,5 +168,6 @@ void Worker::ThrowRuntimeError(char const* format, ...) const
 	fmt.append("BLOCK[%zu] ", m_blockNum);
 	fmt.append(format, args);
 	va_end(args);
+	LOG_E("%s", fmt.c_str());
 	throw std::runtime_error(fmt.c_str());
 }

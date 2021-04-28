@@ -1,7 +1,8 @@
 #pragma once
 
-#include <forward_list>
 #include <algorithm>
+#include <forward_list>
+#include <memory>
 
 #include "Pool.hpp"
 
@@ -11,33 +12,35 @@ template <typename T>
 class PoolStorage
 {
 public:
-	using item_t = T;
-	using pool_t = Pool<item_t>;
-	using pool_list_t = std::forward_list<pool_t>;
+	using item_t      = T;
+	using pool_t      = Pool<item_t>;
+	using sp_pool_t   = std::shared_ptr<pool_t>;
+	using wp_pool_t   = std::weak_ptr<pool_t>;
+	using pool_list_t = std::forward_list<sp_pool_t>;
 
 	PoolStorage()                         = default;
 	~PoolStorage()                        = default;
 	PoolStorage(PoolStorage&&)            = delete;
 	PoolStorage& operator=(PoolStorage&&) = delete;
 
-	pool_t& Allocate(size_t init_size, size_t inc_val)
+	wp_pool_t Allocate(size_t init_size, size_t inc_val)
 	{
-		pool_t* pool = FindFreePool();
-		if (nullptr == pool)
+		sp_pool_t pool = FindFreePool();
+		if (not pool)
 		{
-			m_pools.emplace_front(init_size, inc_val);
-			pool = &m_pools.front();
+			m_pools.emplace_front(std::make_shared<pool_t>(init_size, inc_val));
+			pool = m_pools.front();
 		}
 		pool->MakeNonFree();
-		return *pool;
+		return wp_pool_t{pool};
 	}
 
 private:
-	pool_t* FindFreePool() noexcept
+	sp_pool_t FindFreePool() noexcept
 	{
 		auto it = std::find_if(std::begin(m_pools), std::end(m_pools),
-			[](pool_t const& pool){ return pool.IsFree(); });
-		return (std::end(m_pools) != it) ? &*it : nullptr;
+			[](sp_pool_t const& pool){ return pool->IsFree(); });
+		return (std::end(m_pools) != it) ? *it : sp_pool_t{};
 	}
 
 private:

@@ -58,7 +58,10 @@ Logger::Logger()
 
 Logger::~Logger()
 {
-	m_pool.MakeFree();
+	if (auto sp_pool = m_pool.lock())
+	{
+		sp_pool->MakeFree();
+	}
 }
 
 
@@ -87,7 +90,9 @@ Logger::LogMessage(
 	va_list        vlist)
 {
 	auto const duration = Config::RefInstance().GetDurationSinceStart();
-	LoggerMessage& msg = m_pool.allocate();
+	auto sp_pool = m_pool.lock();
+	if (not sp_pool) { return; }
+	LoggerMessage& msg = sp_pool->allocate();
 
 	auto& buffer = msg.content();
 	StringFormer sf{buffer.data(), buffer.size()};
@@ -101,6 +106,6 @@ Logger::LogMessage(
 	          filename, line_n);
 	sf.append(fmt, vlist);
 
-	m_producer.push(msg);
+	m_producer.push(msg); //NOTE: ignore failure
 }
 

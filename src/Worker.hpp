@@ -46,6 +46,7 @@ private:
 class Worker
 {
 public:
+	using wp_pool_t = std::weak_ptr<Pool<WorkerResult>>;
 	using hasher_t  = std::unique_ptr<algo::IHasher>;
 	using readbuf_t = std::vector<uint8_t>;
 
@@ -80,7 +81,7 @@ private:
 	future_t             m_future;
 	FileReader           m_in;
 
-	Pool<WorkerResult>&  m_results;
+	wp_pool_t            m_results;
 	MpocQueueProducer    m_producer;
 	readbuf_t            m_readBuffer;
 
